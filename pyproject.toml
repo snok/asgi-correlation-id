@@ -1,0 +1,86 @@
+[tool.poetry]
+name = "asgi-correlation-id"
+version = "1.0.0"
+description = "Middleware correlating project logs to individual requests"
+authors = ["Sondre Lillebø Gundersen <sondrelg@live.no>"]
+maintainers = ["Jonas Krüger Svensson <jonas-ks@hotmail.com>"]
+license = "BSD-4-Clause"
+readme = "README.md"
+homepage = "https://github.com/snok/asgi-correlation-id"
+repository = "https://github.com/snok/asgi-correlation-id"
+keywords = [
+    'asgi',
+    'fastapi',
+    'starlette',
+    'async',
+    'correlation',
+    'correlation-id',
+    'request-id',
+    'x-request-id',
+    'tracing',
+    'logging',
+    'middleware',
+    'sentry',
+    'celery'
+]
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Environment :: Web Environment',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: BSD License',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Topic :: Internet :: WWW/HTTP',
+    'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+    'Topic :: Software Development',
+    'Topic :: Software Development :: Libraries',
+    'Topic :: Software Development :: Libraries :: Application Frameworks',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+pre-commit = "*"
+pytest = "*"
+pytest-cov = "*"
+pytest-mock = "*"
+sentry-sdk = "*"
+pytest-asyncio = "*"
+celery = "*"
+fastapi = "*"
+httpx = "*"
+coverage = {extras = ["toml"], version = "*"}
+requests = "*"
+websockets = "*"
+pytest-celery = "*"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
+[tool.black]
+quiet = true
+line-length = 120
+skip-string-normalization = true
+experimental-string-processing = true
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.coverage.run]
+omit = []
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_lines = [
+    "if TYPE_CHECKING:",
+    "pragma: no cover",
+]
