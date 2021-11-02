@@ -287,3 +287,53 @@ With these IDs configured you should be able to:
 
 1. correlate all logs from a single origin, and
 2. piece together the order each log was run, and which process spawned which
+
+#### Example
+
+With everything configured, assuming you have a set of tasks like this
+
+```python
+@celery.task()
+def debug_task():
+    logger.info('Debug task 1')
+    second_debug_task.delay()
+    second_debug_task.delay()
+
+
+@celery.task()
+def second_debug_task():
+    logger.info('Debug task 2')
+    third_debug_task.delay()
+    fourth_debug_task.delay()
+
+
+@celery.task()
+def third_debug_task():
+    logger.info('Debug task 3')
+    fourth_debug_task.delay()
+    fourth_debug_task.delay()
+
+
+@celery.task()
+def fourth_debug_task():
+    logger.info('Debug task 4')
+```
+
+your logs could look something like this
+
+```
+   correlation-id               current-id
+          |        parent-id        |
+          |            |            |
+INFO [3b162382e1] [   None   ] [93ddf3639c] project.tasks - Debug task 1
+INFO [3b162382e1] [93ddf3639c] [24046ab022] project.tasks - Debug task 2
+INFO [3b162382e1] [93ddf3639c] [cb5595a417] project.tasks - Debug task 2
+INFO [3b162382e1] [24046ab022] [08f5428a66] project.tasks - Debug task 3
+INFO [3b162382e1] [24046ab022] [32f40041c6] project.tasks - Debug task 4
+INFO [3b162382e1] [cb5595a417] [1c75a4ed2c] project.tasks - Debug task 3
+INFO [3b162382e1] [08f5428a66] [578ad2d141] project.tasks - Debug task 4
+INFO [3b162382e1] [cb5595a417] [21b2ef77ae] project.tasks - Debug task 4
+INFO [3b162382e1] [08f5428a66] [8cad7fc4d7] project.tasks - Debug task 4
+INFO [3b162382e1] [1c75a4ed2c] [72a43319f0] project.tasks - Debug task 4
+INFO [3b162382e1] [1c75a4ed2c] [ec3cf4113e] project.tasks - Debug task 4
+```
