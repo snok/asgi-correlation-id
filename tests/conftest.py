@@ -6,7 +6,8 @@ from fastapi import FastAPI
 from httpx import AsyncClient
 from starlette.middleware import Middleware
 
-from asgi_correlation_id import celery_tracing_id_filter, correlation_id_filter
+from asgi_correlation_id import correlation_id_filter
+from asgi_correlation_id.log_filters import celery_tracing_id_filter
 from asgi_correlation_id.middleware import CorrelationIdMiddleware
 
 

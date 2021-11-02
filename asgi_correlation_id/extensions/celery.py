@@ -7,20 +7,6 @@ from celery.signals import before_task_publish, task_postrun, task_prerun
 from asgi_correlation_id.extensions.sentry import get_sentry_extension
 
 
-def load_celery_extension() -> None:
-    """
-    Load correlation IDs if celery is installed.
-    """
-    try:
-        import celery  # noqa: F401
-
-        from asgi_correlation_id.extensions.celery import load_correlation_ids
-
-        load_correlation_ids()
-    except ImportError:  # pragma: no cover
-        pass
-
-
 def load_correlation_ids() -> None:
     """
     Transfer correlation IDs from a HTTP request to a Celery worker,

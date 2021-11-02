@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 import pytest
 from celery import shared_task
 
-from asgi_correlation_id import load_celery_current_and_parent_ids, load_correlation_ids
+from asgi_correlation_id.extensions.celery import load_celery_current_and_parent_ids, load_correlation_ids
 from tests.conftest import app
 
 logger = logging.getLogger('asgi_correlation_id')

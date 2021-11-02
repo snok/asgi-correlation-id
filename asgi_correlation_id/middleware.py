@@ -6,7 +6,6 @@ from starlette.datastructures import Headers
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from asgi_correlation_id.context import correlation_id
-from asgi_correlation_id.extensions.celery import load_celery_extension
 from asgi_correlation_id.extensions.sentry import get_sentry_extension
 
 logger = logging.getLogger('asgi_correlation_id')
@@ -28,17 +27,10 @@ class CorrelationIdMiddleware:
     header_name: str = 'X-Request-ID'
     validate_header_as_uuid: bool = True
 
-    def __post_init__(self) -> None:
-        """
-        Load extensions on initialization.
-
-        If Sentry is installed, propagate correlation IDs to Sentry events.
-        If Celery is installed, propagate correlation IDs to spawned worker processes.
-        """
-        self.sentry_extension = get_sentry_extension()
-        load_celery_extension()
-
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """
+        Load request ID from headers if present. Generate one otherwise.
+        """
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
@@ -66,3 +58,20 @@ class CorrelationIdMiddleware:
             await send(message)
 
         return await self.app(scope, receive, handle_outgoing_request)
+
+    def __post_init__(self) -> None:
+        """
+        Load extensions on initialization.
+
+        If Sentry is installed, propagate correlation IDs to Sentry events.
+        If Celery is installed, propagate correlation IDs to spawned worker processes.
+        """
+        self.sentry_extension = get_sentry_extension()
+        try:
+            import celery  # noqa: F401
+
+            from asgi_correlation_id.extensions.celery import load_correlation_ids
+
+            load_correlation_ids()
+        except ImportError:  # pragma: no cover
+            pass

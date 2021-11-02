@@ -1,5 +1,7 @@
 from unittest.mock import Mock
 
+import sentry_sdk
+
 from asgi_correlation_id.extensions.sentry import set_transaction_id
 
 id_value = 'test'
@@ -20,6 +22,6 @@ def test_sentry_sdk_installed(mocker):
         def __exit__(self, exc_type, exc_val, exc_tb):
             pass
 
-    mocker.patch('asgi_correlation_id.extensions.sentry.configure_scope', return_value=MockedScope())
+    mocker.patch.object(sentry_sdk, 'configure_scope', return_value=MockedScope())
     set_transaction_id(id_value)
     set_tag_mock.assert_called_once_with('transaction_id', id_value)
