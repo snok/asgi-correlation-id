@@ -2,6 +2,7 @@ import logging
 from uuid import uuid4
 
 import pytest
+from fastapi import Response
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocket
 
@@ -78,3 +79,18 @@ async def test_websocket_request(caplog):
     with client.websocket_connect('/ws') as websocket:
         websocket.receive_json()
         assert caplog.messages == []
+
+
+@app.get('/access-control-expose-headers')
+async def access_control_view() -> dict:
+    return Response(status_code=204, headers={'Access-Control-Expose-Headers': 'test1, test2'})
+
+
+async def test_access_control_expose_headers(client, caplog):
+    """
+    The middleware should add the correlation ID header name to exposed headers.
+
+    The middleware should not overwrite other values, but should append to it.
+    """
+    response = await client.get('access-control-expose-headers')
+    assert response.headers['Access-Control-Expose-Headers'] == 'test1, test2, X-Request-ID'
