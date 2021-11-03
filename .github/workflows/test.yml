@@ -69,8 +69,8 @@ jobs:
       - name: Run tests
         run: |
           source .venv/bin/activate
-          poetry run pytest --cov=asgi_correlation_id tests/ --cov-report=xml
-          poetry run coverage report
+          pytest --cov=asgi_correlation_id tests/ --cov-report=xml
+          coverage report
       - uses: codecov/codecov-action@v2
         with:
           file: ./coverage.xml
