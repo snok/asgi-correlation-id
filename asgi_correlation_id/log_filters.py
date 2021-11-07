@@ -11,16 +11,19 @@ def correlation_id_filter(uuid_length: int = 32) -> Type[Filter]:
             """
             Attach a correlation ID to the log record.
 
-            Added properties are available as any other LogRecord attribute.
-
-            As long as a project's log formatter is set up to include the correlation_id
-            attribute, any log belonging to that single request will contain the same ID.
+            Since the correlation ID is defined in the middleware layer, any
+            log generated from a request after this point can easily be searched
+            for, if the correlation ID is added to the message, or included as
+            metadata.
             """
             cid = correlation_id.get()
             record.correlation_id = cid[:uuid_length] if cid else cid  # type: ignore[attr-defined]
             return True
 
     return CorrelationId
+
+
+# Celery extension
 
 
 def celery_tracing_id_filter(uuid_length: int = 32) -> Type[Filter]:
