@@ -1,8 +1,9 @@
 from logging import Filter, LogRecord
 from typing import Type
 
-from asgi_correlation_id.context import celery_current_id, celery_parent_id
-from asgi_correlation_id.middleware import correlation_id
+from asgi_correlation_id.context import celery_current_id, celery_parent_id, correlation_id
+
+# Middleware
 
 
 def correlation_id_filter(uuid_length: int = 32) -> Type[Filter]:

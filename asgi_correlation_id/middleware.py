@@ -32,7 +32,8 @@ class CorrelationIdMiddleware:
         Load request ID from headers if present. Generate one otherwise.
         """
         if scope['type'] != 'http':
-            return await self.app(scope, receive, send)
+            await self.app(scope, receive, send)
+            return
 
         header_value = Headers(scope=scope).get(self.header_name.lower())
 
@@ -57,7 +58,8 @@ class CorrelationIdMiddleware:
 
             await send(message)
 
-        return await self.app(scope, receive, handle_outgoing_request)
+        await self.app(scope, receive, handle_outgoing_request)
+        return
 
     def __post_init__(self) -> None:
         """
