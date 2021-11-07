@@ -89,8 +89,7 @@ def load_celery_current_and_parent_ids(header_key: str = 'CELERY_PARENT_ID') -> 
         if parent_id:
             celery_parent_id.set(parent_id)
 
-        current_id = uuid4().hex
-        celery_current_id.set(current_id)
+        celery_current_id.set(uuid4().hex)
 
     @task_postrun.connect(weak=False)
     def clean_up(**kwargs: Any) -> None:

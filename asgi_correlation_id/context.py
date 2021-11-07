@@ -1,8 +1,7 @@
 from contextvars import ContextVar
-
-# Middleware
 from typing import Optional
 
+# Middleware
 correlation_id: ContextVar[Optional[str]] = ContextVar('correlation_id', default=None)
 
 # Celery extension
