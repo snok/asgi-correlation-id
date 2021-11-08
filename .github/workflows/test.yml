@@ -38,7 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.7", "3.8", "3.9", "3.10" ]
+        python-version: [ "3.6", "3.7", "3.8", "3.9", "3.10" ]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -52,7 +52,7 @@ jobs:
       - uses: snok/install-poetry@v1
         with:
           virtualenvs-create: false
-          version: 1.2.0a2
+          version: 1.1.11
       - uses: actions/cache@v2
         id: cache-venv
         with:
