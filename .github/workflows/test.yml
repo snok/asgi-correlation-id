@@ -64,8 +64,6 @@ jobs:
           pip install -U pip
           poetry install --no-interaction --no-root
         if: steps.cache-venv.outputs.cache-hit != 'true'
-      - run: source .venv/bin/activate && pip install coverage[toml]
-        if: steps.cache-venv.outputs.cache-hit != 'true' && matrix.python-version == '3.10'
       - name: Run tests
         run: |
           source .venv/bin/activate

@@ -60,7 +60,7 @@ pytest-asyncio = "*"
 celery = "*"
 fastapi = "*"
 httpx = "*"
-coverage = {extras = ["toml"], version = "^6.1.1"}
+coverage = { extras = ["toml"], version = "^6.1.1", python = "3.10" }
 requests = "*"
 websockets = "*"
 pytest-celery = "*"
