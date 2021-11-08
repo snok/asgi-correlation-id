@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict
 from uuid import uuid4
 
 from celery import Task
@@ -20,7 +20,7 @@ def load_correlation_ids() -> None:
     sentry_extension = get_sentry_extension()
 
     @before_task_publish.connect(weak=False)
-    def transfer_correlation_id(headers: dict, **kwargs: Any) -> None:
+    def transfer_correlation_id(headers: Dict[str, str], **kwargs: Any) -> None:
         """
         Transfer correlation ID from request thread to Celery worker, by adding
         it as a header.
@@ -28,7 +28,9 @@ def load_correlation_ids() -> None:
         This way we're able to correlate work executed by Celery workers, back
         to the originating request, when there was one.
         """
-        headers[header_key] = correlation_id.get()
+        cid = correlation_id.get()
+        if cid:
+            headers[header_key] = cid
 
     @task_prerun.connect(weak=False)
     def load_correlation_id(task: Task, **kwargs: Any) -> None:
@@ -67,7 +69,7 @@ def load_celery_current_and_parent_ids(header_key: str = 'CELERY_PARENT_ID') -> 
     from asgi_correlation_id.context import celery_current_id, celery_parent_id
 
     @before_task_publish.connect(weak=False)
-    def publish_task_from_worker_or_request(headers: dict, **kwargs: Any) -> None:
+    def publish_task_from_worker_or_request(headers: Dict[str, str], **kwargs: Any) -> None:
         """
         Transfer the current ID to the next Celery worker, by adding
         it as a header.
@@ -87,8 +89,7 @@ def load_celery_current_and_parent_ids(header_key: str = 'CELERY_PARENT_ID') -> 
         if parent_id:
             celery_parent_id.set(parent_id)
 
-        current_id = uuid4().hex
-        celery_current_id.set(current_id)
+        celery_current_id.set(uuid4().hex)
 
     @task_postrun.connect(weak=False)
     def clean_up(**kwargs: Any) -> None:

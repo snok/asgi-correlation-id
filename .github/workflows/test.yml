@@ -57,7 +57,7 @@ jobs:
         id: cache-venv
         with:
           path: .venv
-          key: ${{ hashFiles('**/poetry.lock') }}-0
+          key: ${{ hashFiles('**/poetry.lock') }}-${{ matrix.python-version }}-0
       - run: |
           python -m venv .venv
           source .venv/bin/activate
@@ -65,11 +65,11 @@ jobs:
           poetry install --no-interaction --no-root
         if: steps.cache-venv.outputs.cache-hit != 'true'
       - run: source .venv/bin/activate && pip install coverage[toml]
-        if: matrix.python-version == '3.10'
+        if: steps.cache-venv.outputs.cache-hit != 'true' && matrix.python-version == '3.10'
       - name: Run tests
         run: |
           source .venv/bin/activate
-          pytest --cov=asgi_correlation_id tests/ --cov-report=xml
+          pytest tests/ --cov=asgi_correlation_id --cov-report=xml
           coverage report
       - uses: codecov/codecov-action@v2
         with:
