@@ -15,7 +15,7 @@ The middleware checks for the `X-Request-ID` header by default, but can be set t
 
 ## Example
 
-Once logging is configure, your output will go from this
+Once logging is configure, your output will go from this:
 
 ```
 INFO    ... project.views  This is an info log
@@ -26,7 +26,7 @@ WARNING ... project.models This is a warning log
 WARNING ... project.models This is a warning log
 ```
 
-to this
+to this:
 
 ```docker
 INFO    ... [773fa6885] project.views  This is an info log
@@ -51,18 +51,7 @@ To set up the package, you need to add the middleware and configure logging.
 
 ## Adding the middleware
 
-The middleware can be added like this
-
-```python
-from fastapi import FastAPI
-from starlette.middleware import Middleware
-
-from asgi_correlation_id import CorrelationIdMiddleware
-
-app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware)])
-```
-
-or like this
+The middleware can be added like this:
 
 ```python
 from fastapi import FastAPI
@@ -78,17 +67,19 @@ or any other way your framework allows.
 For [Starlette](https://github.com/encode/starlette) apps, just substitute `FastAPI` with `Starlette` in the example
 above.
 
-The middleware only has two settings:
+The middleware only has two settings, and can be configured like this:
 
 ```python
-class CorrelationIdMiddleware(
+app.add_middleware(
+    CorrelationIdMiddleware,
     # The HTTP header key to read IDs from.
     header_name='X-Request-ID',
     # Enforce UUID formatting to limit chance of collisions
     # - Invalid header values are discarded, and an ID is generated in its place
-    validate_header_as_uuid=True,
-): ...
+    validate_header_as_uuid=True
+)
 ```
+
 
 ## Configure logging
 
@@ -123,7 +114,7 @@ LOGGING = {
 }
 ```
 
-You simply have to add the filter, like this
+You simply have to add the filter, like this:
 
 ```diff
 + from asgi_correlation_id.log_filters import correlation_id_filter
@@ -290,7 +281,7 @@ With these IDs configured you should be able to:
 
 #### Example
 
-With everything configured, assuming you have a set of tasks like this
+With everything configured, assuming you have a set of tasks like this:
 
 ```python
 @celery.task()
@@ -319,7 +310,7 @@ def fourth_debug_task():
     logger.info('Debug task 4')
 ```
 
-your logs could look something like this
+your logs could look something like this:
 
 ```
    correlation-id               current-id
