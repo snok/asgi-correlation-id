@@ -21,7 +21,7 @@ def is_valid_uuid(uuid_: str) -> bool:
         return False
 
 
-@dataclass()
+@dataclass
 class CorrelationIdMiddleware:
     app: ASGIApp
     header_name: str = 'X-Request-ID'
@@ -55,7 +55,6 @@ class CorrelationIdMiddleware:
                 headers['Access-Control-Expose-Headers'] = self.header_name
                 response_headers = Headers(headers=headers)
                 message['headers'] = response_headers.raw
-
             await send(message)
 
         await self.app(scope, receive, handle_outgoing_request)
