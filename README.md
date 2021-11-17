@@ -83,6 +83,9 @@ app.add_middleware(
 
 ## Configure logging
 
+This section assumes you have already started configuring logging in your project. If this is not the case,
+check out the section on [setting up logging from scratch](#setting-up-logging-from-scratch) instead.
+
 To set up logging of the correlation ID, you simply have to add the log-filter the package provides.
 
 If your current log-config looked like this:
@@ -150,6 +153,69 @@ LOGGING = {
 ```
 
 If you're using a json log-formatter, just add `correlation-id: %(correlation_id)s` to your list of properties.
+
+# Setting up logging from scratch
+
+If your project does not have logging configured, this section will explain how to get started.
+
+The Python [docs](https://docs.python.org/3/library/logging.config.html) explain there are a few configuration
+functions you may use for simpler setup. For this example we will use `dictConfig`, because that's
+what, e.g., Django users should find most familiar, but the different configuration methods are interchangable,
+so if you want to use another method, just browse the python docs and change the configuration method as you please.
+
+The benefit of `dictConfig` is that it lets you specify your entire logging configuration in a single
+data structure, and it lets you add conditional logic to it. The following example shows how to set up
+both console and JSON logging:
+
+```python
+from logging.config import dictConfig
+
+from asgi_correlation_id.log_filters import correlation_id_filter
+
+from app.core.config import settings
+
+
+def configure_logging() -> None:
+    dictConfig(
+        {
+            'version': 1,
+            'disable_existing_loggers': False,
+            'filters': {  # correlation ID filter must be added here to make the %(correlation_id)s formatter work
+                'correlation_id': {'()': correlation_id_filter(8 if not settings.ENVIRONMENT == 'local' else 32)},
+            },
+            'formatters': {
+                'console': {
+                    'class': 'logging.Formatter',
+                    'datefmt': '%H:%M:%S',
+                    # formatter decides how our console logs look, and what info is included.
+                    # adding %(correlation_id)s to this format is what make correlation IDs appear in our logs
+                    'format': '%(levelname)s:\t\b%(asctime)s %(name)s:%(lineno)d [%(correlation_id)s] %(message)s',
+                },
+            },
+            'handlers': {
+                'console': {
+                    'class': 'logging.StreamHandler',
+                    # Filter must be declared in the handler, otherwise it won't be included
+                    'filters': ['correlation_id'],
+                    'formatter': 'console',
+                },
+            },
+            # Loggers can be specified to set the log-level to log, and which handlers to use
+            'loggers': {
+                # project logger
+                'app': {'handlers': ['console'], 'level': 'DEBUG', 'propagate': True},
+                # third-party package loggers
+                'databases': {'handlers': ['console'], 'level': 'WARNING'},
+                'httpx': {'handlers': ['console'], 'level': 'INFO'},
+                'asgi_correlation_id': {'handlers': ['console'], 'level': 'WARNING'},
+            },
+        }
+    )
+```
+
+With the logging configuration defined within a function like this, all you have to do is make sure to run the
+function on startup somehow, and logging should work for you. You can do this any way you'd like,
+but passing it to the `FastAPI.on_startup` list of callables is a good starting point.
 
 # Extensions
 
