@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "asgi-correlation-id"
-version = "1.1.0"
+version = "1.1.1"
 description = "Middleware correlating project logs to individual requests"
 authors = ["Sondre Lillebø Gundersen <sondrelg@live.no>"]
 maintainers = ["Jonas Krüger Svensson <jonas-ks@hotmail.com>"]
@@ -41,6 +41,9 @@ classifiers = [
     'Topic :: Software Development :: Libraries',
     'Topic :: Software Development :: Libraries :: Application Frameworks',
     'Topic :: Software Development :: Libraries :: Python Modules',
+]
+packages = [
+    { include = "asgi_correlation_id" },
 ]
 
 [tool.poetry.dependencies]
