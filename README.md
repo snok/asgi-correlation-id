@@ -15,7 +15,7 @@ The middleware checks for the `X-Request-ID` header by default, but can be set t
 
 ## Example
 
-Once logging is configure, your output will go from this:
+Once logging is configured, your output will go from this:
 
 ```
 INFO    ... project.views  This is an info log
@@ -156,7 +156,8 @@ If you're using a json log-formatter, just add `correlation-id: %(correlation_id
 
 # Setting up logging from scratch
 
-If your project does not have logging configured, this section will explain how to get started.
+If your project does not have logging configured, this section will explain how to get started. If you want
+even more details, take a look at [this blogpost](https://medium.com/@sondrelg_12432/setting-up-request-id-logging-for-your-fastapi-application-4dc190aac0ea).
 
 The Python [docs](https://docs.python.org/3/library/logging.config.html) explain there are a few configuration
 functions you may use for simpler setup. For this example we will use `dictConfig`, because that's
