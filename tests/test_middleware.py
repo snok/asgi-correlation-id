@@ -82,7 +82,7 @@ async def test_websocket_request(caplog):
 
 
 @app.get('/access-control-expose-headers')
-async def access_control_view() -> dict:
+async def access_control_view() -> Response:
     return Response(status_code=204, headers={'Access-Control-Expose-Headers': 'test1, test2'})
 
 

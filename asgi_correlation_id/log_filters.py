@@ -1,12 +1,12 @@
 from logging import Filter, LogRecord
-from typing import Type
+from typing import Optional, Type
 
 from asgi_correlation_id.context import celery_current_id, celery_parent_id, correlation_id
 
 # Middleware
 
 
-def correlation_id_filter(uuid_length: int = 32) -> Type[Filter]:
+def correlation_id_filter(uuid_length: Optional[int] = None) -> Type[Filter]:
     class CorrelationId(Filter):
         def filter(self, record: LogRecord) -> bool:
             """
@@ -18,7 +18,10 @@ def correlation_id_filter(uuid_length: int = 32) -> Type[Filter]:
             metadata.
             """
             cid = correlation_id.get()
-            record.correlation_id = cid[:uuid_length] if cid else cid  # type: ignore[attr-defined]
+            if uuid_length is not None and cid:
+                record.correlation_id = cid[:uuid_length]  # type: ignore[attr-defined]
+            else:
+                record.correlation_id = cid  # type: ignore[attr-defined]
             return True
 
     return CorrelationId
