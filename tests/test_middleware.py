@@ -1,5 +1,5 @@
 import logging
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from fastapi import Response
@@ -26,28 +26,35 @@ async def websocket(websocket: WebSocket):
     await websocket.close()
 
 
-async def test_returned_response_headers(client):
+valid_uuids = [
+    [uuid4().hex, uuid4().hex],
+    [str(uuid4()), str(uuid4())],
+]
+
+
+@pytest.mark.parametrize('values', valid_uuids)
+async def test_returned_response_headers(client, values):
     """
     We expect:
      - our request id header to be returned back to us
      - the request id header name to be returned in access-control-expose-headers
     """
     # Check we get the right headers back
-    correlation_id = uuid4().hex
+    correlation_id = values[0]
     response = await client.get('test', headers={'X-Request-ID': correlation_id})
     assert response.headers['access-control-expose-headers'] == 'X-Request-ID'
-    assert response.headers['X-Request-ID'] == correlation_id
+    assert UUID(response.headers['X-Request-ID']) == UUID(correlation_id)
 
     # And do it one more time, jic
-    second_correlation_id = uuid4().hex
+    second_correlation_id = values[1]
     second_response = await client.get('test', headers={'X-Request-ID': second_correlation_id})
     assert second_response.headers['access-control-expose-headers'] == 'X-Request-ID'
-    assert second_response.headers['X-Request-ID'] == second_correlation_id
+    assert UUID(second_response.headers['X-Request-ID']) == UUID(second_correlation_id)
 
     # Then try without specifying a request id
     third_response = await client.get('test')
     assert third_response.headers['access-control-expose-headers'] == 'X-Request-ID'
-    assert third_response.headers['X-Request-ID'] not in [correlation_id, second_correlation_id]
+    assert UUID(third_response.headers['X-Request-ID']) not in [UUID(correlation_id), UUID(second_correlation_id)]
 
 
 bad_uuids = [

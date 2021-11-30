@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from typing import Optional
 from uuid import UUID, uuid4
 
 from starlette.datastructures import Headers
@@ -11,14 +12,14 @@ from asgi_correlation_id.extensions.sentry import get_sentry_extension
 logger = logging.getLogger('asgi_correlation_id')
 
 
-def is_valid_uuid(uuid_: str) -> bool:
+def parse_uuid(uuid_: str) -> Optional[UUID]:
     """
     Check whether a string is a valid v4 uuid.
     """
     try:
-        return bool(UUID(uuid_, version=4))
+        return UUID(uuid_, version=4)
     except ValueError:
-        return False
+        return None
 
 
 @dataclass
@@ -39,9 +40,13 @@ class CorrelationIdMiddleware:
 
         if not header_value:
             id_value = uuid4().hex
-        elif self.validate_header_as_uuid and not is_valid_uuid(header_value):
-            logger.warning('Generating new UUID, since header value \'%s\' is invalid', header_value)
-            id_value = uuid4().hex
+        elif self.validate_header_as_uuid:
+            parsed_uuid = parse_uuid(header_value)
+            if parsed_uuid:
+                id_value = parsed_uuid.hex
+            else:
+                logger.warning('Generating new UUID, since header value \'%s\' is invalid', header_value)
+                id_value = uuid4().hex
         else:
             id_value = header_value
 
