@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from logging.config import dictConfig
 
 import pytest
@@ -9,6 +10,8 @@ from starlette.middleware import Middleware
 from asgi_correlation_id import correlation_id_filter
 from asgi_correlation_id.log_filters import celery_tracing_id_filter
 from asgi_correlation_id.middleware import CorrelationIdMiddleware
+
+logger = logging.getLogger('asgi_correlation_id')
 
 
 @pytest.fixture(autouse=True, scope='session')
@@ -46,7 +49,10 @@ def _configure_logging():
     dictConfig(LOGGING)
 
 
-app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware)])
+default_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware)])
+no_validator_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware, validators=[])])
+transformer_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware, transformer=lambda a: a * 2)])
+generator_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware, generator=lambda: 'test')])
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -56,7 +62,7 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 async def client() -> AsyncClient:
-    async with AsyncClient(app=app, base_url='http://test') as client:
+    async with AsyncClient(app=default_app, base_url='http://test') as client:
         yield client

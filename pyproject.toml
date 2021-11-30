@@ -67,6 +67,7 @@ coverage = { extras = ["toml"], version = "^6.1.1", python = "3.10" }
 requests = "*"
 websockets = "*"
 pytest-celery = "*"
+nanoid = "^2.0.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
