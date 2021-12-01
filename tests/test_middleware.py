@@ -7,7 +7,7 @@ from httpx import AsyncClient
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocket
 
-from tests.conftest import default_app, generator_app, no_validator_app, transformer_app
+from tests.conftest import default_app, generator_app, no_uuid_validation_app, no_validator_app, transformer_app
 
 logger = logging.getLogger('asgi_correlation_id')
 
@@ -109,8 +109,9 @@ async def test_access_control_expose_headers(client, caplog, app):
     assert response.headers['Access-Control-Expose-Headers'] == 'test1, test2, X-Request-ID'
 
 
-async def test_no_validator():
-    async with AsyncClient(app=no_validator_app, base_url='http://test') as client:
+@pytest.mark.parametrize('app', [no_validator_app, no_uuid_validation_app])
+async def test_no_validator(app):
+    async with AsyncClient(app=app, base_url='http://test') as client:
         response = await client.get('test', headers={'X-Request-ID': 'bad-uuid'})
 
     assert response.headers['X-Request-ID'] == 'bad-uuid'

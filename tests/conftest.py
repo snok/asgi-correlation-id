@@ -50,7 +50,8 @@ def _configure_logging():
 
 
 default_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware)])
-no_validator_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware, validators=[])])
+no_validator_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware, validator=None)])
+no_uuid_validation_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware, validate_header_as_uuid=False)])
 transformer_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware, transformer=lambda a: a * 2)])
 generator_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware, generator=lambda: 'test')])
 

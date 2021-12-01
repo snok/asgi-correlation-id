@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass, field
-from typing import Callable, List
+from typing import Callable
 from uuid import uuid4
 
 from starlette.datastructures import Headers
@@ -21,8 +21,8 @@ class CorrelationIdMiddleware:
     # ID generating function
     generator: Callable[[], str] = field(default=lambda: uuid4().hex)
 
-    # Validators for discarding badly formatted IDs
-    validators: List[Callable[[str], bool]] = None  # type: ignore[assignment]
+    # Validator for discarding badly formatted IDs
+    validator: Callable[[str], bool] = field(default=is_valid_uuid)
 
     # Extra handler layer for mutating IDs if needed
     transformer: Callable[[str], str] = field(default=lambda a: a)
@@ -42,7 +42,7 @@ class CorrelationIdMiddleware:
 
         if not header_value:
             id_value: str = self.transformer(self.generator())
-        elif self.validators and not all(validator(header_value) for validator in self.validators):
+        elif self.validator and not self.validator(header_value):
             logger.warning("Generating new ID, since header value '%s' is invalid", header_value)
             id_value = self.transformer(self.generator())
         else:
@@ -70,8 +70,8 @@ class CorrelationIdMiddleware:
         If Sentry is installed, propagate correlation IDs to Sentry events.
         If Celery is installed, propagate correlation IDs to spawned worker processes.
         """
-        if self.validators is None:
-            self.validators = [is_valid_uuid] if self.validate_header_as_uuid else []
+        if self.validate_header_as_uuid is False and self.validator == is_valid_uuid:
+            self.validator = lambda a: True
 
         self.sentry_extension = get_sentry_extension()
         try:
