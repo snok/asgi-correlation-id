@@ -4,8 +4,8 @@
 
 # ASGI Correlation ID middleware
 
-Middleware for loading or generating correlation IDs for each incoming request. Correlation IDs can be added to your
-logs, making it simple to retrieve all logs generated from a single HTTP request.
+Middleware for reading or generating correlation IDs for each incoming request. Correlation IDs can then be added to
+your logs, making it simple to correlate logs generated from a single HTTP request.
 
 When the middleware detects a correlation ID HTTP header in an incoming request, the ID is stored. If no header is
 found, a correlation ID is generated for the request instead.
@@ -64,27 +64,12 @@ app.add_middleware(CorrelationIdMiddleware)
 
 or any other way your framework allows.
 
-For [Starlette](https://github.com/encode/starlette) apps, just substitute `FastAPI` with `Starlette` in the example
-above.
-
-The middleware only has two settings, and can be configured like this:
-
-```python
-app.add_middleware(
-    CorrelationIdMiddleware,
-    # The HTTP header key to read IDs from.
-    header_name='X-Request-ID',
-    # Enforce UUID formatting to limit chance of collisions
-    # - Invalid header values are discarded, and an ID is generated in its place
-    validate_header_as_uuid=True
-)
-```
-
+For [Starlette](https://github.com/encode/starlette) apps, just substitute `FastAPI` with `Starlette` in all examples.
 
 ## Configure logging
 
-This section assumes you have already started configuring logging in your project. If this is not the case,
-check out the section on [setting up logging from scratch](#setting-up-logging-from-scratch) instead.
+This section assumes you have already started configuring logging in your project. If this is not the case, check out
+the section on [setting up logging from scratch](#setting-up-logging-from-scratch) instead.
 
 To set up logging of the correlation ID, you simply have to add the log-filter the package provides.
 
@@ -154,19 +139,68 @@ LOGGING = {
 
 If you're using a json log-formatter, just add `correlation-id: %(correlation_id)s` to your list of properties.
 
+## Middleware configuration
+
+The middleware can be configured in a few ways, but no arguments are required.
+
+```python
+app.add_middleware(
+    CorrelationIdMiddleware,
+    header_name='X-Request-ID',
+    generator=lambda: uuid4().hex,
+    validator=is_valid_uuid,
+    transformer=lambda a: a,
+)
+```
+
+Configurable middleware arguments include:
+
+**header_name**
+
+- Type: `str`
+- Default: `X-Request-ID`
+- Description: The header name decides which HTTP header value to read correlation IDs from. `X-Request-ID` and
+  `X-Correlation-ID` are common choices.
+
+**generator**
+
+- Type: `Callable[[], str]`
+- Default: `lambda: uuid4().hex`
+- Description: The generator function is responsible for generating new correlation IDs when no ID is received from an
+  incoming request's headers. We use UUIDs by default, but if you prefer, you could use libraries
+  like [nanoid](https://github.com/puyuan/py-nanoid) or your own custom function.
+
+**validator**
+
+- Type: `Callable[[str], bool]`
+- Default: `is_valid_uuid` (
+  found [here](https://github.com/snok/asgi-correlation-id/blob/main/asgi_correlation_id/validators.py))
+- Description: The validator function is used when reading incoming HTTP header values. By default we discard non-UUID
+  formatted header values, to enforce correlation ID uniqueness. If you prefer to allow any header value, you can set
+  this setting to `None`, or pass your own validator.
+
+**transformer**
+
+- Type: `Callable[[str], str]`
+- Default: `lambda a: a`
+- Description: Most users won't need a transformer, and by default we do nothing.
+  The argument was added for cases where users might want to alter incoming or generated ID values in some way. It
+  provides a mechanism for transforming an incoming ID in a way you see fit. See the middleware code for more context.
+
 # Setting up logging from scratch
 
-If your project does not have logging configured, this section will explain how to get started. If you want
-even more details, take a look at [this blogpost](https://medium.com/@sondrelg_12432/setting-up-request-id-logging-for-your-fastapi-application-4dc190aac0ea).
+If your project does not have logging configured, this section will explain how to get started. If you want even more
+details, take a look
+at [this blogpost](https://medium.com/@sondrelg_12432/setting-up-request-id-logging-for-your-fastapi-application-4dc190aac0ea)
+.
 
-The Python [docs](https://docs.python.org/3/library/logging.config.html) explain there are a few configuration
-functions you may use for simpler setup. For this example we will use `dictConfig`, because that's
-what, e.g., Django users should find most familiar, but the different configuration methods are interchangable,
-so if you want to use another method, just browse the python docs and change the configuration method as you please.
+The Python [docs](https://docs.python.org/3/library/logging.config.html) explain there are a few configuration functions
+you may use for simpler setup. For this example we will use `dictConfig`, because that's what, e.g., Django users should
+find most familiar, but the different configuration methods are interchangable, so if you want to use another method,
+just browse the python docs and change the configuration method as you please.
 
-The benefit of `dictConfig` is that it lets you specify your entire logging configuration in a single
-data structure, and it lets you add conditional logic to it. The following example shows how to set up
-both console and JSON logging:
+The benefit of `dictConfig` is that it lets you specify your entire logging configuration in a single data structure,
+and it lets you add conditional logic to it. The following example shows how to set up both console and JSON logging:
 
 ```python
 from logging.config import dictConfig
@@ -214,9 +248,9 @@ def configure_logging() -> None:
     )
 ```
 
-With the logging configuration defined within a function like this, all you have to do is make sure to run the
-function on startup somehow, and logging should work for you. You can do this any way you'd like,
-but passing it to the `FastAPI.on_startup` list of callables is a good starting point.
+With the logging configuration defined within a function like this, all you have to do is make sure to run the function
+on startup somehow, and logging should work for you. You can do this any way you'd like, but passing it to
+the `FastAPI.on_startup` list of callables is a good starting point.
 
 # Extensions
 
@@ -234,8 +268,8 @@ to connect logs to a Sentry event.
 
 ## Celery
 
-For Celery user's there's one primary issue: workers run as completely separate processes, so correlation IDs
-are lost when spawning background tasks from requests.
+For Celery user's there's one primary issue: workers run as completely separate processes, so correlation IDs are lost
+when spawning background tasks from requests.
 
 However, with some Celery signal magic, we can actually transfer correlation IDs to worker processes, like this:
 
@@ -266,8 +300,8 @@ load_correlation_ids()
 ### Taking it one step further - Adding Celery tracing IDs
 
 In addition to transferring request IDs to Celery workers, we've added one more log filter for improving tracing in
-celery processes. This is completely separate from correlation ID functionality, but is something we use ourselves,
-so keep in the package with the rest of the signals.
+celery processes. This is completely separate from correlation ID functionality, but is something we use ourselves, so
+keep in the package with the rest of the signals.
 
 The log filter adds an ID, `celery_current_id` for each worker process, and an ID, `celery_parent_id` for the process
 that spawned it.
