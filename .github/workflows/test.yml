@@ -57,7 +57,8 @@ jobs:
       - name: Run tests
         run: |
           source .venv/bin/activate
-          pytest tests/ --cov=asgi_correlation_id --cov-report=xml
+          coverage run -m pytest tests
+          coverage xml
           coverage report
       - uses: codecov/codecov-action@v2
         with:
