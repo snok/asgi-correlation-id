@@ -80,11 +80,10 @@ app.add_middleware(
 )
 ```
 
-
 ## Configure logging
 
-This section assumes you have already started configuring logging in your project. If this is not the case,
-check out the section on [setting up logging from scratch](#setting-up-logging-from-scratch) instead.
+This section assumes you have already started configuring logging in your project. If this is not the case, check out
+the section on [setting up logging from scratch](#setting-up-logging-from-scratch) instead.
 
 To set up logging of the correlation ID, you simply have to add the log-filter the package provides.
 
@@ -154,19 +153,83 @@ LOGGING = {
 
 If you're using a json log-formatter, just add `correlation-id: %(correlation_id)s` to your list of properties.
 
+## Exception handling
+
+By default, the `X-Correlation-ID` and `Access-Control-Expose-Headers` response headers will be included in all
+responses from the server, *except* in the case of unhandled server errors. If you wish to include request IDs in the
+case of a `500` error you can add a custom exception handler.
+
+Here are some simple examples to help you get started. See each framework's documentation for more info.
+
+### Starlette
+
+Docs: https://www.starlette.io/exceptions/
+
+```python
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse
+from starlette.applications import Starlette
+
+from asgi_correlation_id.context import correlation_id
+
+
+async def custom_exception_handler(request: Request, exc: Exception):
+    return PlainTextResponse(
+        "Internal Server Error",
+        status_code=500,
+        headers={
+            'X-Correlation-ID': correlation_id.get() or "",
+            'Access-Control-Expose-Headers': 'X-Correlation-ID'
+        }
+    )
+
+
+app = Starlette(
+    ...,
+    exception_handlers={500: custom_exception_handler}
+)
+```
+
+### FastAPI
+
+Docs: https://fastapi.tiangolo.com/tutorial/handling-errors/
+
+```python
+from app.main import app
+from fastapi import HTTPException, Request
+from fastapi.exception_handlers import http_exception_handler
+
+from asgi_correlation_id.context import correlation_id
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    return await http_exception_handler(
+        request,
+        HTTPException(
+            500,
+            'Internal server error',
+            headers={
+                'X-Correlation-ID': correlation_id.get() or "",
+                'Access-Control-Expose-Headers': 'X-Correlation-ID'
+            }
+        ))
+```
+
 # Setting up logging from scratch
 
-If your project does not have logging configured, this section will explain how to get started. If you want
-even more details, take a look at [this blogpost](https://medium.com/@sondrelg_12432/setting-up-request-id-logging-for-your-fastapi-application-4dc190aac0ea).
+If your project does not have logging configured, this section will explain how to get started. If you want even more
+details, take a look
+at [this blogpost](https://medium.com/@sondrelg_12432/setting-up-request-id-logging-for-your-fastapi-application-4dc190aac0ea)
+.
 
-The Python [docs](https://docs.python.org/3/library/logging.config.html) explain there are a few configuration
-functions you may use for simpler setup. For this example we will use `dictConfig`, because that's
-what, e.g., Django users should find most familiar, but the different configuration methods are interchangable,
-so if you want to use another method, just browse the python docs and change the configuration method as you please.
+The Python [docs](https://docs.python.org/3/library/logging.config.html) explain there are a few configuration functions
+you may use for simpler setup. For this example we will use `dictConfig`, because that's what, e.g., Django users should
+find most familiar, but the different configuration methods are interchangable, so if you want to use another method,
+just browse the python docs and change the configuration method as you please.
 
-The benefit of `dictConfig` is that it lets you specify your entire logging configuration in a single
-data structure, and it lets you add conditional logic to it. The following example shows how to set up
-both console and JSON logging:
+The benefit of `dictConfig` is that it lets you specify your entire logging configuration in a single data structure,
+and it lets you add conditional logic to it. The following example shows how to set up both console and JSON logging:
 
 ```python
 from logging.config import dictConfig
@@ -214,9 +277,9 @@ def configure_logging() -> None:
     )
 ```
 
-With the logging configuration defined within a function like this, all you have to do is make sure to run the
-function on startup somehow, and logging should work for you. You can do this any way you'd like,
-but passing it to the `FastAPI.on_startup` list of callables is a good starting point.
+With the logging configuration defined within a function like this, all you have to do is make sure to run the function
+on startup somehow, and logging should work for you. You can do this any way you'd like, but passing it to
+the `FastAPI.on_startup` list of callables is a good starting point.
 
 # Extensions
 
@@ -234,8 +297,8 @@ to connect logs to a Sentry event.
 
 ## Celery
 
-For Celery user's there's one primary issue: workers run as completely separate processes, so correlation IDs
-are lost when spawning background tasks from requests.
+For Celery user's there's one primary issue: workers run as completely separate processes, so correlation IDs are lost
+when spawning background tasks from requests.
 
 However, with some Celery signal magic, we can actually transfer correlation IDs to worker processes, like this:
 
@@ -266,8 +329,8 @@ load_correlation_ids()
 ### Taking it one step further - Adding Celery tracing IDs
 
 In addition to transferring request IDs to Celery workers, we've added one more log filter for improving tracing in
-celery processes. This is completely separate from correlation ID functionality, but is something we use ourselves,
-so keep in the package with the rest of the signals.
+celery processes. This is completely separate from correlation ID functionality, but is something we use ourselves, so
+keep in the package with the rest of the signals.
 
 The log filter adds an ID, `celery_current_id` for each worker process, and an ID, `celery_parent_id` for the process
 that spawned it.
