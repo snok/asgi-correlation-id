@@ -36,6 +36,7 @@ repos:
             'flake8-simplify',
             'flake8-pytest-style',
             'flake8-printf-formatting',
+            'flake8-type-checking',
         ]
 
   - repo: https://github.com/sirosen/check-jsonschema

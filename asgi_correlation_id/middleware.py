@@ -1,12 +1,15 @@
 import logging
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from starlette.datastructures import Headers
-from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from asgi_correlation_id.context import correlation_id
 from asgi_correlation_id.extensions.sentry import get_sentry_extension
+
+if TYPE_CHECKING:
+    from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 logger = logging.getLogger('asgi_correlation_id')
 
@@ -23,11 +26,11 @@ def is_valid_uuid(uuid_: str) -> bool:
 
 @dataclass
 class CorrelationIdMiddleware:
-    app: ASGIApp
+    app: 'ASGIApp'
     header_name: str = 'X-Request-ID'
     validate_header_as_uuid: bool = True
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __call__(self, scope: 'Scope', receive: 'Receive', send: 'Send') -> None:
         """
         Load request ID from headers if present. Generate one otherwise.
         """
@@ -48,7 +51,7 @@ class CorrelationIdMiddleware:
         correlation_id.set(id_value)
         self.sentry_extension(id_value)
 
-        async def handle_outgoing_request(message: Message) -> None:
+        async def handle_outgoing_request(message: 'Message') -> None:
             if message['type'] == 'http.response.start':
                 headers = {k.decode(): v.decode() for (k, v) in message['headers']}
                 headers[self.header_name] = correlation_id.get()
@@ -69,7 +72,7 @@ class CorrelationIdMiddleware:
         """
         self.sentry_extension = get_sentry_extension()
         try:
-            import celery  # noqa: F401
+            import celery  # noqa: F401, TC002
 
             from asgi_correlation_id.extensions.celery import load_correlation_ids
 

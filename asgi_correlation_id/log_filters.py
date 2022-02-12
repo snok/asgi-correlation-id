@@ -1,14 +1,18 @@
-from logging import Filter, LogRecord
-from typing import Optional, Type
+from logging import Filter
+from typing import TYPE_CHECKING, Optional, Type
 
 from asgi_correlation_id.context import celery_current_id, celery_parent_id, correlation_id
+
+if TYPE_CHECKING:
+    from logging import LogRecord
+
 
 # Middleware
 
 
 def correlation_id_filter(uuid_length: Optional[int] = None) -> Type[Filter]:
     class CorrelationId(Filter):
-        def filter(self, record: LogRecord) -> bool:
+        def filter(self, record: 'LogRecord') -> bool:
             """
             Attach a correlation ID to the log record.
 
@@ -32,7 +36,7 @@ def correlation_id_filter(uuid_length: Optional[int] = None) -> Type[Filter]:
 
 def celery_tracing_id_filter(uuid_length: int = 32) -> Type[Filter]:
     class CeleryTracingIds(Filter):
-        def filter(self, record: LogRecord) -> bool:
+        def filter(self, record: 'LogRecord') -> bool:
             """
             Append a parent- and current ID to the log record.
 
