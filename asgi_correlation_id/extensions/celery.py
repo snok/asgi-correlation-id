@@ -1,10 +1,12 @@
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 from uuid import uuid4
 
-from celery import Task
 from celery.signals import before_task_publish, task_postrun, task_prerun
 
 from asgi_correlation_id.extensions.sentry import get_sentry_extension
+
+if TYPE_CHECKING:
+    from celery import Task
 
 
 def load_correlation_ids() -> None:
@@ -33,7 +35,7 @@ def load_correlation_ids() -> None:
             headers[header_key] = cid
 
     @task_prerun.connect(weak=False)
-    def load_correlation_id(task: Task, **kwargs: Any) -> None:
+    def load_correlation_id(task: 'Task', **kwargs: Any) -> None:
         """
         Set correlation ID from header if it exists.
 
@@ -81,7 +83,7 @@ def load_celery_current_and_parent_ids(header_key: str = 'CELERY_PARENT_ID') -> 
             headers[header_key] = current
 
     @task_prerun.connect(weak=False)
-    def worker_prerun(task: Task, **kwargs: Any) -> None:
+    def worker_prerun(task: 'Task', **kwargs: Any) -> None:
         """
         Set current ID, and parent ID if it exists.
         """

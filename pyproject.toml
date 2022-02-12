@@ -56,14 +56,16 @@ contextvars = { version = "^2.4", python = "3.6" }
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.9.2"
 pytest = "*"
-pytest-cov = "*"
 pytest-mock = "*"
 sentry-sdk = "*"
 pytest-asyncio = "*"
 celery = "*"
 fastapi = "*"
 httpx = "*"
-coverage = { extras = ["toml"], version = "^6.1.1", python = "3.10" }
+coverage = [
+    { extras = ["toml"], version = "^6", python = "3.10" },
+    { version = "^5 || ^6", python = ">=3.6!=3.10" },
+]
 requests = "*"
 websockets = "*"
 pytest-celery = "*"

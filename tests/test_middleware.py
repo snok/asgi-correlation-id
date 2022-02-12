@@ -1,12 +1,15 @@
 import logging
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import pytest
 from fastapi import Response
 from starlette.testclient import TestClient
-from starlette.websockets import WebSocket
 
 from tests.conftest import app
+
+if TYPE_CHECKING:
+    from starlette.websockets import WebSocket
 
 logger = logging.getLogger('asgi_correlation_id')
 
@@ -20,7 +23,7 @@ async def test_view() -> dict:
 
 
 @app.websocket_route('/ws')
-async def websocket(websocket: WebSocket):
+async def websocket(websocket: 'WebSocket'):
     await websocket.accept()
     await websocket.send_json({'msg': 'Hello WebSocket'})
     await websocket.close()

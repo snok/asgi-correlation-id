@@ -14,31 +14,21 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: "3.10"
-      - uses: actions/cache@v2
-        id: cache-venv
-        with:
-          path: .venv
-          key: venv-0
-      - run: |
-          python -m venv .venv --upgrade-deps
-          source .venv/bin/activate
-          pip install pre-commit
+      - run: pip install pre-commit
         if: steps.cache-venv.outputs.cache-hit != 'true'
       - uses: actions/cache@v2
         id: pre-commit-cache
         with:
           path: ~/.cache/pre-commit
           key: key-0
-      - run: |
-          source .venv/bin/activate
-          pre-commit run --all-files
+      - run: pre-commit run --all-files
 
   test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.6", "3.7", "3.8", "3.9", "3.10" ]
+        python-version: [ "3.6", "3.7", "3.8", "3.9", "3.10", "3.11.0-alpha.5" ]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -67,7 +57,8 @@ jobs:
       - name: Run tests
         run: |
           source .venv/bin/activate
-          pytest tests/ --cov=asgi_correlation_id --cov-report=xml
+          coverage run -m pytest tests
+          coverage xml
           coverage report
       - uses: codecov/codecov-action@v2
         with:
