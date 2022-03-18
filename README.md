@@ -282,6 +282,46 @@ With the logging configuration defined within a function like this, all you have
 on startup somehow, and logging should work for you. You can do this any way you'd like, but passing it to
 the `FastAPI.on_startup` list of callables is a good starting point.
 
+# Integration with structlog
+
+[structlog](https://www.structlog.org/) is a Python library that enables structured logging.
+
+It is trivial to configure with `asgi_correlation_id`:
+
+```python
+import logging
+from typing import Any
+
+import structlog
+from asgi_correlation_id.context import correlation_id
+
+
+def add_correlation(
+    logger: logging.Logger, method_name: str, event_dict: dict[str, Any]
+) -> dict[str, Any]:
+    """Add request id to log message."""
+    if request_id := correlation_id.get():
+        event_dict["request_id"] = request_id
+    return event_dict
+
+
+structlog.configure(
+    processors=[
+        add_correlation,
+        structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M.%S"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.JSONRenderer(),
+    ],
+    wrapper_class=structlog.stdlib.BoundLogger,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    cache_logger_on_first_use=True,
+)
+```
+
 # Extensions
 
 In addition to the middleware, we've added a couple of extensions for third-party packages.
