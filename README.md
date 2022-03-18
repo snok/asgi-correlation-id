@@ -173,7 +173,7 @@ from starlette.applications import Starlette
 from asgi_correlation_id.context import correlation_id
 
 
-async def custom_exception_handler(request: Request, exc: Exception):
+async def custom_exception_handler(request: Request, exc: Exception) -> PlainTextResponse:
     return PlainTextResponse(
         "Internal Server Error",
         status_code=500,
@@ -198,12 +198,13 @@ Docs: https://fastapi.tiangolo.com/tutorial/handling-errors/
 from app.main import app
 from fastapi import HTTPException, Request
 from fastapi.exception_handlers import http_exception_handler
+from fastapi.responses import JSONResponse
 
 from asgi_correlation_id.context import correlation_id
 
 
 @app.exception_handler(Exception)
-async def unhandled_exception_handler(request: Request, exc: Exception):
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     return await http_exception_handler(
         request,
         HTTPException(
@@ -415,28 +416,28 @@ With everything configured, assuming you have a set of tasks like this:
 
 ```python
 @celery.task()
-def debug_task():
+def debug_task() -> None:
     logger.info('Debug task 1')
     second_debug_task.delay()
     second_debug_task.delay()
 
 
 @celery.task()
-def second_debug_task():
+def second_debug_task() -> None:
     logger.info('Debug task 2')
     third_debug_task.delay()
     fourth_debug_task.delay()
 
 
 @celery.task()
-def third_debug_task():
+def third_debug_task() -> None:
     logger.info('Debug task 3')
     fourth_debug_task.delay()
     fourth_debug_task.delay()
 
 
 @celery.task()
-def fourth_debug_task():
+def fourth_debug_task() -> None:
     logger.info('Debug task 4')
 ```
 
