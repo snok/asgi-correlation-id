@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
+import typing
 from starlette.datastructures import Headers
 
 from asgi_correlation_id.context import correlation_id
@@ -53,10 +54,12 @@ class CorrelationIdMiddleware:
 
         async def handle_outgoing_request(message: 'Message') -> None:
             if message['type'] == 'http.response.start':
-                headers = {k.decode(): v.decode() for (k, v) in message['headers']}
-                headers[self.header_name] = correlation_id.get()
-                headers['Access-Control-Expose-Headers'] = self.header_name
-                response_headers = Headers(headers=headers)
+                raw_headers: typing.List[typing.Tuple[bytes, bytes]] = []
+                for (k, v) in message['headers']:
+                    raw_headers.append((k.decode(), v.decode()))
+                raw_headers.append((self.header_name.encode("latin-1"), correlation_id.get().encode("latin-1")))
+                raw_headers.append((b'Access-Control-Expose-Headers' ,self.header_name.encode("latin-1")))
+                response_headers = Headers(raw=raw_headers)
                 message['headers'] = response_headers.raw
             await send(message)
 
