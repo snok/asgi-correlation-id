@@ -60,7 +60,7 @@ class CorrelationIdMiddleware:
 
                 # add the non-null correlation_id
                 correlation_id_local = correlation_id.get()
-                if correlation_id.get():
+                if correlation_id_local:
                     raw_headers.append((self.header_name.encode('latin-1'), correlation_id_local.encode('latin-1')))
                 raw_headers.append((b'Access-Control-Expose-Headers', self.header_name.encode('latin-1')))
                 response_headers = Headers(raw=raw_headers)
