@@ -1,9 +1,9 @@
 import logging
+import typing
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-import typing
 from starlette.datastructures import Headers
 
 from asgi_correlation_id.context import correlation_id
@@ -57,8 +57,12 @@ class CorrelationIdMiddleware:
                 raw_headers: typing.List[typing.Tuple[bytes, bytes]] = []
                 for (k, v) in message['headers']:
                     raw_headers.append((k.decode(), v.decode()))
-                raw_headers.append((self.header_name.encode("latin-1"), correlation_id.get().encode("latin-1")))
-                raw_headers.append((b'Access-Control-Expose-Headers' ,self.header_name.encode("latin-1")))
+
+                # add the non-null correlation_id
+                correlation_id_local = correlation_id.get()
+                if correlation_id.get():
+                    raw_headers.append((self.header_name.encode('latin-1'), correlation_id_local.encode('latin-1')))
+                raw_headers.append((b'Access-Control-Expose-Headers', self.header_name.encode('latin-1')))
                 response_headers = Headers(raw=raw_headers)
                 message['headers'] = response_headers.raw
             await send(message)
