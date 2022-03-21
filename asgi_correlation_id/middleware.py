@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from starlette.datastructures import Headers
+from starlette.datastructures import Headers, MutableHeaders
 
 from asgi_correlation_id.context import correlation_id
 from asgi_correlation_id.extensions.sentry import get_sentry_extension
@@ -52,17 +52,10 @@ class CorrelationIdMiddleware:
         self.sentry_extension(id_value)
 
         async def handle_outgoing_request(message: 'Message') -> None:
-            if message['type'] == 'http.response.start':
-                raw_headers = [(k.decode(), v.decode()) for (k, v) in message['headers']]
-
-                # add the non-null correlation_id
-                correlation_id_local = correlation_id.get()
-                if correlation_id_local:
-                    raw_headers.append((self.header_name.encode('latin-1'), correlation_id_local.encode('latin-1')))
-                    raw_headers.append((b'Access-Control-Expose-Headers', self.header_name.encode('latin-1')))
-
-                response_headers = Headers(raw=raw_headers)
-                message['headers'] = response_headers.raw
+            if message['type'] == 'http.response.start' and correlation_id.get():
+                headers = MutableHeaders(scope=message)
+                headers.append(self.header_name, correlation_id.get())
+                headers.append('Access-Control-Expose-Headers', self.header_name)
 
             await send(message)
 
