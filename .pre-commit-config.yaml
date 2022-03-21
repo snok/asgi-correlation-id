@@ -40,18 +40,18 @@ repos:
         ]
 
   - repo: https://github.com/sirosen/check-jsonschema
-    rev: 0.10.2
+    rev: 0.14.0
     hooks:
       - id: check-github-actions
       - id: check-github-workflows
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.31.0
+    rev: v2.31.1
     hooks:
       - id: pyupgrade
         args: [ "--py36-plus" ]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.931
+    rev: v0.941
     hooks:
       - id: mypy
