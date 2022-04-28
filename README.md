@@ -404,8 +404,6 @@ load_correlation_ids()
 To set up the additional log filters, update your log config like this:
 
 ```diff
-+ from asgi_correlation_id.log_filters import celery_tracing_id_filter
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -414,7 +412,10 @@ LOGGING = {
 +           '()': 'asgi_correlation_id.CorrelationIdFilter',
 +           'uuid_length': 32,
 +       },
-+       'celery_tracing': {'()': celery_tracing_id_filter(uuid_length=32)},
++       'celery_tracing': {
++            '()': 'asgi_correlation_id.CeleryTracingIdsFilter',
++            'uuid_length': 32,
++       },
     },
     'formatters': {
         'web': {
