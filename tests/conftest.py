@@ -16,7 +16,7 @@ def _configure_logging():
         'version': 1,
         'disable_existing_loggers': False,
         'filters': {
-            'correlation_id': {'()': 'asgi_correlation_id.CorrelationIDFilter'},
+            'correlation_id': {'()': 'asgi_correlation_id.CorrelationIdFilter'},
             'celery_tracing': {'()': celery_tracing_id_filter()},
         },
         'formatters': {

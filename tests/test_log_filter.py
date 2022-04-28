@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import pytest
 
-from asgi_correlation_id import CorrelationIDFilter
+from asgi_correlation_id import CorrelationIdFilter
 from asgi_correlation_id.context import correlation_id
 
 
@@ -23,12 +23,12 @@ def log_record():
 
 
 def test_filter_has_uuid_length_attributes():
-    filter_ = CorrelationIDFilter(uuid_length=8)
+    filter_ = CorrelationIdFilter(uuid_length=8)
     assert filter_.uuid_length == 8
 
 
 def test_filter_adds_correlation_id(cid, log_record):
-    filter_ = CorrelationIDFilter()
+    filter_ = CorrelationIdFilter()
 
     assert not hasattr(log_record, 'correlation_id')
     filter_.filter(log_record)
@@ -36,7 +36,7 @@ def test_filter_adds_correlation_id(cid, log_record):
 
 
 def test_filter_truncates_correlation_id(cid, log_record):
-    filter_ = CorrelationIDFilter(uuid_length=8)
+    filter_ = CorrelationIdFilter(uuid_length=8)
 
     assert not hasattr(log_record, 'correlation_id')
     filter_.filter(log_record)

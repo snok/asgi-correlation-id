@@ -124,7 +124,7 @@ LOGGING = {
     'disable_existing_loggers': False,
 +   'filters': {
 +       'correlation_id': {
-+           '()': 'asgi_correlation_id.CorrelationIDFilter',
++           '()': 'asgi_correlation_id.CorrelationIdFilter',
 +           'uuid_length': 32,
 +       },
 +   },
@@ -246,7 +246,7 @@ def configure_logging() -> None:
             'disable_existing_loggers': False,
             'filters': {  # correlation ID filter must be added here to make the %(correlation_id)s formatter work
                 'correlation_id': {
-                    '()': 'asgi_correlation_id.CorrelationIDFilter',
+                    '()': 'asgi_correlation_id.CorrelationIdFilter',
                     'uuid_length': 8 if not settings.ENVIRONMENT == 'local' else 32,
                 },
             },
@@ -411,7 +411,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'filters': {
         'correlation_id': {
-+           '()': 'asgi_correlation_id.CorrelationIDFilter',
++           '()': 'asgi_correlation_id.CorrelationIdFilter',
 +           'uuid_length': 32,
 +       },
 +       'celery_tracing': {'()': celery_tracing_id_filter(uuid_length=32)},

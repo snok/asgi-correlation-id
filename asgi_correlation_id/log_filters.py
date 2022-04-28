@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 # Middleware
 
 
-class CorrelationIDFilter(Filter):
+class CorrelationIdFilter(Filter):
     """Logging filter to attached correlation IDs to log records"""
 
     def __init__(self, name: str = '', uuid_length: Optional[int] = None):
