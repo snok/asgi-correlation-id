@@ -10,6 +10,30 @@ if TYPE_CHECKING:
 # Middleware
 
 
+class CorrelationIDFilter(Filter):
+    """Logging filter to attached correlation IDs to log records"""
+
+    def __init__(self, name: str = '', uuid_length: Optional[int] = None):
+        super().__init__(name=name)
+        self.uuid_length = uuid_length
+
+    def filter(self, record: 'LogRecord') -> bool:
+        """
+        Attach a correlation ID to the log record.
+
+        Since the correlation ID is defined in the middleware layer, any
+        log generated from a request after this point can easily be searched
+        for, if the correlation ID is added to the message, or included as
+        metadata.
+        """
+        cid = correlation_id.get()
+        if self.uuid_length is not None and cid:
+            record.correlation_id = cid[: self.uuid_length]  # type: ignore[attr-defined]
+        else:
+            record.correlation_id = cid  # type: ignore[attr-defined]
+        return True
+
+
 def correlation_id_filter(uuid_length: Optional[int] = None) -> Type[Filter]:
     class CorrelationId(Filter):
         def filter(self, record: 'LogRecord') -> bool:
