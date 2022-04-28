@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import pytest
 
-from asgi_correlation_id import CorrelationIDFilter, correlation_id_filter
+from asgi_correlation_id import CorrelationIDFilter
 from asgi_correlation_id.context import correlation_id
 
 
@@ -42,14 +42,3 @@ def test_filter_truncates_correlation_id(cid, log_record):
     filter_.filter(log_record)
     assert len(log_record.correlation_id) == 8  # Needs to match uuid_length
     assert cid.startswith(log_record.correlation_id)  # And needs to be the first 8 characters of the id
-
-
-def test_correlation_id_filter(cid, log_record):
-    # Call with no uuid length
-    correlation_id_filter(None)().filter(log_record)
-    assert log_record.correlation_id == cid
-
-    # Call with uuid length
-    for length in [0, 14, 30, 100]:
-        correlation_id_filter(uuid_length=length)().filter(log_record)
-        assert log_record.correlation_id == cid[:length]
