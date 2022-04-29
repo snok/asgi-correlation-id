@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/psf/black
-    rev: 22.1.0
+    rev: 22.3.0
     hooks:
       - id: black
 
@@ -10,7 +10,7 @@ repos:
       - id: isort
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.1.0
+    rev: v4.2.0
     hooks:
       - id: check-ast
       - id: check-merge-conflict
@@ -40,18 +40,18 @@ repos:
         ]
 
   - repo: https://github.com/sirosen/check-jsonschema
-    rev: 0.14.0
+    rev: 0.14.3
     hooks:
       - id: check-github-actions
       - id: check-github-workflows
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.31.1
+    rev: v2.32.0
     hooks:
       - id: pyupgrade
         args: [ "--py36-plus" ]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.941
+    rev: v0.950
     hooks:
       - id: mypy

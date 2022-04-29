@@ -6,8 +6,6 @@ from fastapi import FastAPI
 from httpx import AsyncClient
 from starlette.middleware import Middleware
 
-from asgi_correlation_id import correlation_id_filter
-from asgi_correlation_id.log_filters import celery_tracing_id_filter
 from asgi_correlation_id.middleware import CorrelationIdMiddleware
 
 
@@ -17,8 +15,8 @@ def _configure_logging():
         'version': 1,
         'disable_existing_loggers': False,
         'filters': {
-            'correlation_id': {'()': correlation_id_filter()},
-            'celery_tracing': {'()': celery_tracing_id_filter()},
+            'correlation_id': {'()': 'asgi_correlation_id.CorrelationIdFilter'},
+            'celery_tracing': {'()': 'asgi_correlation_id.CeleryTracingIdsFilter'},
         },
         'formatters': {
             'full': {

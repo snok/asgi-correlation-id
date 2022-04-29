@@ -119,13 +119,14 @@ LOGGING = {
 You simply have to add the filter, like this:
 
 ```diff
-+ from asgi_correlation_id.log_filters import correlation_id_filter
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
 +   'filters': {
-+       'correlation_id': {'()': correlation_id_filter(uuid_length=32)},
++       'correlation_id': {
++           '()': 'asgi_correlation_id.CorrelationIdFilter',
++           'uuid_length': 32,
++       },
 +   },
     'formatters': {
         'web': {
@@ -235,8 +236,6 @@ and it lets you add conditional logic to it. The following example shows how to 
 ```python
 from logging.config import dictConfig
 
-from asgi_correlation_id.log_filters import correlation_id_filter
-
 from app.core.config import settings
 
 
@@ -246,7 +245,10 @@ def configure_logging() -> None:
             'version': 1,
             'disable_existing_loggers': False,
             'filters': {  # correlation ID filter must be added here to make the %(correlation_id)s formatter work
-                'correlation_id': {'()': correlation_id_filter(8 if not settings.ENVIRONMENT == 'local' else 32)},
+                'correlation_id': {
+                    '()': 'asgi_correlation_id.CorrelationIdFilter',
+                    'uuid_length': 8 if not settings.ENVIRONMENT == 'local' else 32,
+                },
             },
             'formatters': {
                 'console': {
@@ -402,14 +404,18 @@ load_correlation_ids()
 To set up the additional log filters, update your log config like this:
 
 ```diff
-+ from asgi_correlation_id.log_filters import celery_tracing_id_filter, correlation_id_filter
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'filters': {
-        'correlation_id': {'()': correlation_id_filter(uuid_length=32)},
-+       'celery_tracing': {'()': celery_tracing_id_filter(uuid_length=32)},
+        'correlation_id': {
++           '()': 'asgi_correlation_id.CorrelationIdFilter',
++           'uuid_length': 32,
++       },
++       'celery_tracing': {
++            '()': 'asgi_correlation_id.CeleryTracingIdsFilter',
++            'uuid_length': 32,
++       },
     },
     'formatters': {
         'web': {
