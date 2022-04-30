@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "asgi-correlation-id"
-version = "1.1.4"
+version = "2.0.0"
 description = "Middleware correlating project logs to individual requests"
 authors = ["Sondre Lillebø Gundersen <sondrelg@live.no>"]
 maintainers = ["Jonas Krüger Svensson <jonas-ks@hotmail.com>"]
@@ -30,11 +30,11 @@ classifiers = [
     'License :: OSI Approved :: BSD License',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
     'Topic :: Internet :: WWW/HTTP',
     'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     'Topic :: Software Development',
@@ -47,11 +47,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6.1"
-
-# Backports
-dataclasses = { version = "^0.8", python = "3.6" }
-contextvars = { version = "^2.4", python = "3.6" }
+python = "^3.7"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.9.2"
@@ -64,7 +60,7 @@ fastapi = "*"
 httpx = "*"
 coverage = [
     { extras = ["toml"], version = "^6", python = "3.10" },
-    { version = "^5 || ^6", python = ">=3.6!=3.10" },
+    { version = "^5 || ^6", python = ">=3.7!=3.10" },
 ]
 requests = "*"
 websockets = "*"
