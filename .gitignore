@@ -13,3 +13,4 @@ htmlcov/
 
 # celery
 celerybeat-*
+.sourcery.yaml
