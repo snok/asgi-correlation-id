@@ -13,6 +13,9 @@ if TYPE_CHECKING:
 
     from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+ExcInfoType = Union[Tuple[Type[BaseException], BaseException, 'TracebackType', None], Tuple[None, None, None], None]
+ArgsType = Union[Tuple[Any], Mapping[str, Any], None]
+
 logger = logging.getLogger('asgi_correlation_id')
 
 
@@ -94,10 +97,8 @@ def _set_log_record_factory() -> None:
         fn: str,
         lno: int,
         msg: Any,
-        args: Union[Tuple[Any], Mapping[str, Any], None],
-        exc_info: Union[
-            Tuple[Type[BaseException], BaseException, 'TracebackType', None], Tuple[None, None, None], None
-        ],
+        args: ArgsType,
+        exc_info: ExcInfoType,
         func: Optional[str] = None,
         sinfo: Optional[str] = None,
         **kwargs: Any,
