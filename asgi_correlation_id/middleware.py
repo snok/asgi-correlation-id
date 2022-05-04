@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Tuple, Type, Union
 from uuid import UUID, uuid4
 
 from starlette.datastructures import Headers, MutableHeaders
@@ -9,6 +9,8 @@ from asgi_correlation_id.context import correlation_id
 from asgi_correlation_id.extensions.sentry import get_sentry_extension
 
 if TYPE_CHECKING:
+    from types import TracebackType
+
     from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 logger = logging.getLogger('asgi_correlation_id')
@@ -69,6 +71,7 @@ class CorrelationIdMiddleware:
         If Sentry is installed, propagate correlation IDs to Sentry events.
         If Celery is installed, propagate correlation IDs to spawned worker processes.
         """
+        _set_log_record_factory()
         self.sentry_extension = get_sentry_extension()
         try:
             import celery  # noqa: F401, TC002
@@ -78,3 +81,32 @@ class CorrelationIdMiddleware:
             load_correlation_ids()
         except ImportError:  # pragma: no cover
             pass
+
+
+def _set_log_record_factory() -> None:
+    """Set a custom log record factory which enriches log records with correlation IDs"""
+    # TODO: prevent this from being called twice
+    old_factory = logging.getLogRecordFactory()
+
+    def new_factory(
+        name: str,
+        level: int,
+        fn: str,
+        lno: int,
+        msg: Any,
+        args: Union[Tuple[Any], Mapping[str, Any], None],
+        exc_info: Union[
+            Tuple[Type[BaseException], BaseException, 'TracebackType', None], Tuple[None, None, None], None
+        ],
+        func: Optional[str] = None,
+        sinfo: Optional[str] = None,
+        **kwargs: Any,
+    ) -> logging.LogRecord:
+        """Log record factory which adds `correlation_id` attribute"""
+        record = old_factory(name, level, fn, lno, msg, args, exc_info, func=func, sinfo=sinfo, **kwargs)
+        record.correlation_id = correlation_id.get()  # type: ignore[attr-defined]
+        # TODO: if required set celery correlation IDs
+        return record
+
+    logger.debug('Setting %s log record factory', __package__)
+    logging.setLogRecordFactory(new_factory)
