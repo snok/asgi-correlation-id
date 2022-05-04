@@ -105,6 +105,7 @@ def _set_log_record_factory() -> None:
     ) -> logging.LogRecord:
         """Log record factory which adds `correlation_id` attribute"""
         record = old_factory(name, level, fn, lno, msg, args, exc_info, func=func, sinfo=sinfo, **kwargs)
+        # TODO: support truncating the ID to n characters
         record.correlation_id = correlation_id.get()  # type: ignore[attr-defined]
         # TODO: if required set celery correlation IDs
         return record
