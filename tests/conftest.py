@@ -43,8 +43,14 @@ def _configure_logging():
     }
     dictConfig(LOGGING)
 
+TRANSFORMER_VALUE = 'some-id'
 
-app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware)])
+default_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware)])
+no_validator_or_transformer_app = FastAPI(
+    middleware=[Middleware(CorrelationIdMiddleware, validator=None, transformer=None)]
+)
+transformer_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware, transformer=lambda a: a * 2)])
+generator_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware, generator=lambda: TRANSFORMER_VALUE)])
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -56,5 +62,5 @@ def event_loop():
 
 @pytest.fixture(scope='module')
 async def client() -> AsyncClient:
-    async with AsyncClient(app=app, base_url='http://test') as client:
+    async with AsyncClient(app=default_app, base_url='http://test') as client:
         yield client

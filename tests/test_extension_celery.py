@@ -5,7 +5,7 @@ import pytest
 from celery import shared_task
 
 from asgi_correlation_id.extensions.celery import load_celery_current_and_parent_ids, load_correlation_ids
-from tests.conftest import app
+from tests.conftest import default_app
 
 logger = logging.getLogger('asgi_correlation_id')
 
@@ -40,7 +40,7 @@ async def test_endpoint_to_worker_to_worker(client, caplog, celery_session_app, 
         - The current ID of the first worker to be added as the parent ID of the second worker
     """
 
-    @app.get('/celery-test', status_code=200)
+    @default_app.get('/celery-test', status_code=200)
     async def test_view() -> dict:
         logger.debug('Test view')
         task1.delay().get(timeout=10)
