@@ -1,6 +1,6 @@
 import logging
-from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Callable, Optional
 from uuid import UUID, uuid4
 
 from starlette.datastructures import Headers, MutableHeaders
@@ -28,7 +28,15 @@ def is_valid_uuid4(uuid_: str) -> bool:
 class CorrelationIdMiddleware:
     app: 'ASGIApp'
     header_name: str = 'X-Request-ID'
-    validate_header_as_uuid: bool = True
+
+    # ID-generating callable
+    generator: Callable[[], str] = field(default=lambda: uuid4().hex)
+
+    # ID validator
+    validator: Optional[Callable[[str], bool]] = field(default=is_valid_uuid4)
+
+    # ID transformer - can be used to clean/mutate IDs
+    transformer: Optional[Callable[[str], str]] = field(default=lambda a: a)
 
     async def __call__(self, scope: 'Scope', receive: 'Receive', send: 'Send') -> None:
         """
@@ -38,15 +46,23 @@ class CorrelationIdMiddleware:
             await self.app(scope, receive, send)
             return
 
+        # Try to load request ID from the request headers
         header_value = Headers(scope=scope).get(self.header_name.lower())
 
         if not header_value:
-            id_value = uuid4().hex
-        elif self.validate_header_as_uuid and not is_valid_uuid4(header_value):
-            logger.warning('Generating new UUID, since header value \'%s\' is invalid', header_value)
-            id_value = uuid4().hex
+            # Generate request ID if none was found
+            id_value = self.generator()
+        elif self.validator and not self.validator(header_value):
+            # Also generate a request ID if one was found, but it was deemed invalid
+            logger.warning('Generating new request ID, since header value \'%s\' is invalid', header_value)
+            id_value = self.generator()
         else:
+            # Otherwise, use the found request ID
             id_value = header_value
+
+        # Clean/change the ID if needed
+        if self.transformer:
+            id_value = self.transformer(id_value)
 
         correlation_id.set(id_value)
         self.sentry_extension(id_value)
