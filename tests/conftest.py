@@ -43,6 +43,7 @@ def _configure_logging():
     }
     dictConfig(LOGGING)
 
+
 TRANSFORMER_VALUE = 'some-id'
 
 default_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware)])

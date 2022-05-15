@@ -74,7 +74,7 @@ build-backend = "poetry.masonry.api"
 quiet = true
 line-length = 120
 skip-string-normalization = true
-experimental-string-processing = true
+preview = true
 
 [tool.isort]
 profile = "black"

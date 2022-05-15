@@ -7,8 +7,13 @@ from fastapi import Response
 from httpx import AsyncClient
 from starlette.testclient import TestClient
 
-from tests.conftest import default_app, generator_app, no_validator_or_transformer_app, transformer_app, \
-    TRANSFORMER_VALUE
+from tests.conftest import (
+    TRANSFORMER_VALUE,
+    default_app,
+    generator_app,
+    no_validator_or_transformer_app,
+    transformer_app,
+)
 
 if TYPE_CHECKING:
     from starlette.websockets import WebSocket
@@ -67,6 +72,7 @@ async def test_non_uuid_header(client, caplog, value, app):
     We expect the middleware to ignore our request ID and log a warning
     when the request ID we pass doesn't correspond to the uuid4 format.
     """
+
     @app.get('/test', status_code=200)
     async def test_view() -> dict:
         logger.debug('Test view')
@@ -103,6 +109,7 @@ async def test_access_control_expose_headers(caplog, app):
     The middleware should add the correlation ID header name to exposed headers.
     The middleware should not overwrite other values, but should append to it.
     """
+
     @app.get('/access-control-expose-headers')
     async def access_control_view() -> Response:
         return Response(status_code=204, headers={'Access-Control-Expose-Headers': 'test1, test2'})
@@ -117,6 +124,7 @@ async def test_multiple_headers_same_name(caplog, app):
     """
     The middleware should not change the headers that were set in the response and return all of them as it is.
     """
+
     @app.get('/multiple_headers_same_name')
     async def multiple_headers_response() -> Response:
         response = Response(status_code=204)
