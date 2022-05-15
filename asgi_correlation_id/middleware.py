@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger('asgi_correlation_id')
 
 
-def is_valid_uuid(uuid_: str) -> bool:
+def is_valid_uuid4(uuid_: str) -> bool:
     """
     Check whether a string is a valid v4 uuid.
     """
@@ -42,7 +42,7 @@ class CorrelationIdMiddleware:
 
         if not header_value:
             id_value = uuid4().hex
-        elif self.validate_header_as_uuid and not is_valid_uuid(header_value):
+        elif self.validate_header_as_uuid and not is_valid_uuid4(header_value):
             logger.warning('Generating new UUID, since header value \'%s\' is invalid', header_value)
             id_value = uuid4().hex
         else:
