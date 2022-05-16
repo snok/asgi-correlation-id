@@ -40,13 +40,13 @@ repos:
         ]
 
   - repo: https://github.com/sirosen/check-jsonschema
-    rev: 0.14.3
+    rev: 0.15.0
     hooks:
       - id: check-github-actions
       - id: check-github-workflows
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.32.0
+    rev: v2.32.1
     hooks:
       - id: pyupgrade
         args: [ "--py36-plus" ]

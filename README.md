@@ -4,7 +4,7 @@
 
 # ASGI Correlation ID middleware
 
-Middleware for loading or generating correlation IDs for each incoming request. Correlation IDs can be added to your
+Middleware for reading or generating correlation IDs for each incoming request. Correlation IDs can then be added to your
 logs, making it simple to retrieve all logs generated from a single HTTP request.
 
 When the middleware detects a correlation ID HTTP header in an incoming request, the ID is stored. If no header is
@@ -64,21 +64,7 @@ app.add_middleware(CorrelationIdMiddleware)
 
 or any other way your framework allows.
 
-For [Starlette](https://github.com/encode/starlette) apps, just substitute `FastAPI` with `Starlette` in the example
-above.
-
-The middleware only has two settings, and can be configured like this:
-
-```python
-app.add_middleware(
-    CorrelationIdMiddleware,
-    # The HTTP header key to read IDs from.
-    header_name='X-Request-ID',
-    # Enforce UUID formatting to limit chance of collisions
-    # - Invalid header values are discarded, and an ID is generated in its place
-    validate_header_as_uuid=True
-)
-```
+For [Starlette](https://github.com/encode/starlette) apps, just substitute `FastAPI` with `Starlette` in all examples.
 
 ## Configure logging
 
@@ -153,6 +139,54 @@ LOGGING = {
 ```
 
 If you're using a json log-formatter, just add `correlation-id: %(correlation_id)s` to your list of properties.
+
+## Middleware configuration
+
+The middleware can be configured in a few ways, but there are no required arguments.
+
+```python
+app.add_middleware(
+    CorrelationIdMiddleware,
+    header_name='X-Request-ID',
+    generator=lambda: uuid4().hex,
+    validator=is_valid_uuid4,
+    transformer=lambda a: a,
+)
+```
+
+Configurable middleware arguments include:
+
+**header_name**
+
+- Type: `str`
+- Default: `X-Request-ID`
+- Description: The header name decides which HTTP header value to read correlation IDs from. `X-Request-ID` and
+  `X-Correlation-ID` are common choices.
+
+**generator**
+
+- Type: `Callable[[], str]`
+- Default: `lambda: uuid4().hex`
+- Description: The generator function is responsible for generating new correlation IDs when no ID is received from an
+  incoming request's headers. We use UUIDs by default, but if you prefer, you could use libraries
+  like [nanoid](https://github.com/puyuan/py-nanoid) or your own custom function.
+
+**validator**
+
+- Type: `Callable[[str], bool]`
+- Default: `is_valid_uuid` (
+  found [here](https://github.com/snok/asgi-correlation-id/blob/main/asgi_correlation_id/validators.py))
+- Description: The validator function is used when reading incoming HTTP header values. By default, we discard non-UUID
+  formatted header values, to enforce correlation ID uniqueness. If you prefer to allow any header value, you can set
+  this setting to `None`, or pass your own validator.
+
+**transformer**
+
+- Type: `Callable[[str], str]`
+- Default: `lambda a: a`
+- Description: Most users won't need a transformer, and by default we do nothing.
+  The argument was added for cases where users might want to alter incoming or generated ID values in some way. It
+  provides a mechanism for transforming an incoming ID in a way you see fit. See the middleware code for more context.
 
 ## Exception handling
 
