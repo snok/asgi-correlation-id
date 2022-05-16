@@ -7,6 +7,7 @@ from fastapi import Response
 from httpx import AsyncClient
 from starlette.testclient import TestClient
 
+from asgi_correlation_id.middleware import FAILED_VALIDATION_MESSAGE
 from tests.conftest import (
     TRANSFORMER_VALUE,
     default_app,
@@ -81,7 +82,7 @@ async def test_non_uuid_header(client, caplog, value, app):
     async with AsyncClient(app=app, base_url='http://test') as client:
         response = await client.get('test', headers={'X-Request-ID': value})
         assert response.headers['X-Request-ID'] != value
-        assert caplog.messages[0] == f"Generating new request ID, since header value '{value}' is invalid"
+        assert caplog.messages[0] == FAILED_VALIDATION_MESSAGE.replace('%s', value)
 
 
 @pytest.mark.parametrize('app', apps)

@@ -24,6 +24,9 @@ def is_valid_uuid4(uuid_: str) -> bool:
         return False
 
 
+FAILED_VALIDATION_MESSAGE = 'Generated new request ID (%s), since request header value failed validation'
+
+
 @dataclass
 class CorrelationIdMiddleware:
     app: 'ASGIApp'
@@ -54,8 +57,8 @@ class CorrelationIdMiddleware:
             id_value = self.generator()
         elif self.validator and not self.validator(header_value):
             # Also generate a request ID if one was found, but it was deemed invalid
-            logger.warning('Generating new request ID, since header value \'%s\' is invalid', header_value)
             id_value = self.generator()
+            logger.warning(FAILED_VALIDATION_MESSAGE, header_value)
         else:
             # Otherwise, use the found request ID
             id_value = header_value
