@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "asgi-correlation-id"
-version = "2.0.0"
+version = "3.0.0a1"
 description = "Middleware correlating project logs to individual requests"
 authors = ["Sondre Lillebø Gundersen <sondrelg@live.no>"]
 maintainers = ["Jonas Krüger Svensson <jonas-ks@hotmail.com>"]
