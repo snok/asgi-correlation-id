@@ -2,6 +2,7 @@ import asyncio
 from logging.config import dictConfig
 
 import pytest
+import pytest_asyncio
 from fastapi import FastAPI
 from httpx import AsyncClient
 from starlette.middleware import Middleware
@@ -61,7 +62,7 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope='module')
+@pytest_asyncio.fixture(scope='module')
 async def client() -> AsyncClient:
     async with AsyncClient(app=default_app, base_url='http://test') as client:
         yield client
