@@ -174,8 +174,8 @@ Configurable middleware arguments include:
 **validator**
 
 - Type: `Callable[[str], bool]`
-- Default: `is_valid_uuid` (
-  found [here](https://github.com/snok/asgi-correlation-id/blob/main/asgi_correlation_id/validators.py))
+- Default: `is_valid_uuid4` (
+  found [here](https://github.com/snok/asgi-correlation-id/blob/main/asgi_correlation_id/middleware.py#L17))
 - Description: The validator function is used when reading incoming HTTP header values. By default, we discard non-UUID
   formatted header values, to enforce correlation ID uniqueness. If you prefer to allow any header value, you can set
   this setting to `None`, or pass your own validator.
