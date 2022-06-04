@@ -190,7 +190,7 @@ Configurable middleware arguments include:
 
 ## Exception handling
 
-By default, the `X-Correlation-ID` and `Access-Control-Expose-Headers` response headers will be included in all
+By default, the `X-Request-ID` and `Access-Control-Expose-Headers` response headers will be included in all
 responses from the server, *except* in the case of unhandled server errors. If you wish to include request IDs in the
 case of a `500` error you can add a custom exception handler.
 
@@ -213,8 +213,8 @@ async def custom_exception_handler(request: Request, exc: Exception) -> PlainTex
         "Internal Server Error",
         status_code=500,
         headers={
-            'X-Correlation-ID': correlation_id.get() or "",
-            'Access-Control-Expose-Headers': 'X-Correlation-ID'
+            'X-Request-ID': correlation_id.get() or "",
+            'Access-Control-Expose-Headers': 'X-Request-ID'
         }
     )
 
@@ -246,8 +246,8 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
             500,
             'Internal server error',
             headers={
-                'X-Correlation-ID': correlation_id.get() or "",
-                'Access-Control-Expose-Headers': 'X-Correlation-ID'
+                'X-Request-ID': correlation_id.get() or "",
+                'Access-Control-Expose-Headers': 'X-Request-ID'
             }
         ))
 ```
