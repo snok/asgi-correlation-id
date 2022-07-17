@@ -48,6 +48,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
+starlette = ">=0.13"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.9.2"
