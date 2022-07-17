@@ -28,7 +28,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11.0-alpha.7" ]
+        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11.0-beta.4" ]
+        starlette-version: [ "0.18", "0.19" ]  # add 0.20 when fastapi supports it
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -52,6 +53,7 @@ jobs:
           python -m venv .venv
           source .venv/bin/activate
           pip install -U pip
+          poetry add starlette==${{ matrix.starlette-version }}
           poetry install --no-interaction --no-root
         if: steps.cache-venv.outputs.cache-hit != 'true'
       - name: Run tests
