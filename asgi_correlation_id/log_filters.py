@@ -28,9 +28,9 @@ class CorrelationIdFilter(Filter):
         """
         cid = correlation_id.get()
         if self.uuid_length is not None and cid:
-            record.correlation_id = cid[: self.uuid_length]  # type: ignore[attr-defined]
+            record.correlation_id = cid[: self.uuid_length]
         else:
-            record.correlation_id = cid  # type: ignore[attr-defined]
+            record.correlation_id = cid
         return True
 
 
@@ -52,7 +52,7 @@ class CeleryTracingIdsFilter(Filter):
         or from an endpoint, the parent ID will be None.
         """
         pid = celery_parent_id.get()
-        record.celery_parent_id = pid[: self.uuid_length] if pid else pid  # type: ignore[attr-defined]
+        record.celery_parent_id = pid[: self.uuid_length] if pid else pid
         cid = celery_current_id.get()
-        record.celery_current_id = cid[: self.uuid_length] if cid else cid  # type: ignore[attr-defined]
+        record.celery_current_id = cid[: self.uuid_length] if cid else cid
         return True

@@ -42,7 +42,7 @@ jobs:
         id: poetry-cache
         with:
           path: ~/.local
-          key: ${{ matrix.python-version }}-1
+          key: ${{ matrix.python-version }}-0
       - uses: snok/install-poetry@v1
         with:
           virtualenvs-create: false
@@ -51,12 +51,12 @@ jobs:
         id: cache-venv
         with:
           path: .venv
-          key: ${{ hashFiles('**/poetry.lock') }}-${{ matrix.python-version }}-1
+          key: ${{ hashFiles('**/poetry.lock') }}-${{ matrix.python-version }}-0
       - run: |
           python -m venv .venv
           source .venv/bin/activate
           pip install -U pip
-          poetry add starlette==${{ matrix.starlette-version }}
+          poetry add fastapi==${{ matrix.fastapi-version }}
           poetry install --no-interaction --no-root
         if: steps.cache-venv.outputs.cache-hit != 'true'
       - name: Run tests
