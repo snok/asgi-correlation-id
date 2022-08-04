@@ -358,6 +358,55 @@ structlog.configure(
 )
 ```
 
+# Integration with [SAQ](https://github.com/tobymao/saq)
+
+If you're using [saq](https://github.com/tobymao/saq/), you
+can easily transfer request IDs from the web server to your
+workers by using the event hooks provided by the library:
+
+```python
+from uuid import uuid4
+
+from asgi_correlation_id.context import correlation_id
+from saq import Job, Queue
+
+
+CID_TRANSFER_KEY = 'correlation_id'
+
+
+async def before_enqueue(job: Job) -> None:
+    """
+    Transfer the correlation ID from the current context to the worker.
+
+    This might be called from a web server or a worker process.
+    """
+    job.meta[CID_TRANSFER_KEY] = correlation_id.get() or uuid4()
+
+
+async def before_process(ctx: dict) -> None:
+    """
+    Load correlation ID from the enqueueing process to this one.
+    """
+    correlation_id.set(ctx['job'].meta.get(CID_TRANSFER_KEY, uuid4()))
+
+
+async def after_process(ctx: dict) -> None:
+    """
+    Reset correlation ID for this process.
+    """
+    correlation_id.set(None)
+
+queue = Queue(...)
+queue.register_before_enqueue(before_enqueue)
+
+priority_settings = {
+    ...,
+    'queue': queue,
+    'before_process': before_process,
+    'after_process': after_process,
+}
+```
+
 # Extensions
 
 In addition to the middleware, we've added a couple of extensions for third-party packages.
