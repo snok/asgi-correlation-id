@@ -10,13 +10,12 @@ jobs:
   linting:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.10"
       - run: pip install pre-commit
-        if: steps.cache-venv.outputs.cache-hit != 'true'
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: pre-commit-cache
         with:
           path: ~/.cache/pre-commit
@@ -34,11 +33,11 @@ jobs:
         # so we would need to redo that first.
         fastapi-version: [ "0.78", "0.79" ]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: "${{ matrix.python-version }}"
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: poetry-cache
         with:
           path: ~/.local
@@ -47,7 +46,7 @@ jobs:
         with:
           virtualenvs-create: false
           version: 1.1.12
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: cache-venv
         with:
           path: .venv
