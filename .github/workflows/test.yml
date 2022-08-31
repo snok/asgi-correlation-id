@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.7", "3.8", "3.9", "3.10" ]
+        python-version: [ "3.7.13", "3.8.13", "3.9.13", "3.10.6", "3.11.0-rc.1" ]
         # Ideally we would test starlette versions, not FastAPI,
         # but our test suite currently uses FastAPI comprehensively,
         # so we would need to redo that first.
@@ -41,16 +41,16 @@ jobs:
         id: poetry-cache
         with:
           path: ~/.local
-          key: ${{ matrix.python-version }}-0
+          key: ${{ matrix.python-version }}-1
       - uses: snok/install-poetry@v1
         with:
           virtualenvs-create: false
-          version: 1.1.12
+          version: latest
       - uses: actions/cache@v3
         id: cache-venv
         with:
           path: .venv
-          key: ${{ hashFiles('**/poetry.lock') }}-${{ matrix.python-version }}-0
+          key: ${{ hashFiles('**/poetry.lock') }}-${{ matrix.python-version }}-1
       - run: |
           python -m venv .venv
           source .venv/bin/activate
