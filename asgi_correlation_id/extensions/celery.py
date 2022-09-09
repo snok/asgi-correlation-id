@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Callable, Dict
 from uuid import uuid4
 
 from celery.signals import before_task_publish, task_postrun, task_prerun
@@ -8,8 +8,12 @@ from asgi_correlation_id.extensions.sentry import get_sentry_extension
 if TYPE_CHECKING:
     from celery import Task
 
+uuid_hex_generator_fn: Callable[[], str] = lambda: uuid4().hex
 
-def load_correlation_ids() -> None:
+
+def load_correlation_ids(
+    header_key: str = 'CORRELATION_ID', generator: Callable[[], str] = uuid_hex_generator_fn
+) -> None:
     """
     Transfer correlation IDs from a HTTP request to a Celery worker,
     when spawned from a request.
@@ -18,7 +22,6 @@ def load_correlation_ids() -> None:
     """
     from asgi_correlation_id.context import correlation_id
 
-    header_key = 'CORRELATION_ID'
     sentry_extension = get_sentry_extension()
 
     @before_task_publish.connect(weak=False)
@@ -46,7 +49,7 @@ def load_correlation_ids() -> None:
             correlation_id.set(id_value)
             sentry_extension(id_value)
         else:
-            generated_correlation_id = uuid4().hex
+            generated_correlation_id = generator()
             correlation_id.set(generated_correlation_id)
             sentry_extension(generated_correlation_id)
 
@@ -61,7 +64,9 @@ def load_correlation_ids() -> None:
         correlation_id.set(None)
 
 
-def load_celery_current_and_parent_ids(header_key: str = 'CELERY_PARENT_ID') -> None:
+def load_celery_current_and_parent_ids(
+    header_key: str = 'CELERY_PARENT_ID', generator: Callable[[], str] = uuid_hex_generator_fn
+) -> None:
     """
     Configure Celery event hooks for generating tracing IDs with depth.
 
@@ -91,7 +96,7 @@ def load_celery_current_and_parent_ids(header_key: str = 'CELERY_PARENT_ID') -> 
         if parent_id:
             celery_parent_id.set(parent_id)
 
-        celery_current_id.set(uuid4().hex)
+        celery_current_id.set(generator())
 
     @task_postrun.connect(weak=False)
     def clean_up(**kwargs: Any) -> None:
