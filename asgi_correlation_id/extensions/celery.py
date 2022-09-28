@@ -65,7 +65,9 @@ def load_correlation_ids(
 
 
 def load_celery_current_and_parent_ids(
-    header_key: str = 'CELERY_PARENT_ID', generator: Callable[[], str] = uuid_hex_generator_fn
+    header_key: str = 'CELERY_PARENT_ID',
+    generator: Callable[[], str] = uuid_hex_generator_fn,
+    use_internal_celery_task_id: bool = False,
 ) -> None:
     """
     Configure Celery event hooks for generating tracing IDs with depth.
@@ -88,7 +90,7 @@ def load_celery_current_and_parent_ids(
             headers[header_key] = current
 
     @task_prerun.connect(weak=False)
-    def worker_prerun(task: 'Task', **kwargs: Any) -> None:
+    def worker_prerun(task_id: str, task: 'Task', **kwargs: Any) -> None:
         """
         Set current ID, and parent ID if it exists.
         """
@@ -96,7 +98,8 @@ def load_celery_current_and_parent_ids(
         if parent_id:
             celery_parent_id.set(parent_id)
 
-        celery_current_id.set(generator())
+        celery_id = task_id if use_internal_celery_task_id else generator()
+        celery_current_id.set(celery_id)
 
     @task_postrun.connect(weak=False)
     def clean_up(**kwargs: Any) -> None:
