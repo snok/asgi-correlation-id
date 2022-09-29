@@ -7,6 +7,10 @@ if TYPE_CHECKING:
     from logging import LogRecord
 
 
+def _trim_string(string: Optional[str], string_length: Optional[int]) -> Optional[str]:
+    return string[:string_length] if string_length is not None and string else string
+
+
 # Middleware
 
 
@@ -27,10 +31,7 @@ class CorrelationIdFilter(Filter):
         metadata.
         """
         cid = correlation_id.get()
-        if self.uuid_length is not None and cid:
-            record.correlation_id = cid[: self.uuid_length]
-        else:
-            record.correlation_id = cid
+        record.correlation_id = _trim_string(cid, self.uuid_length)
         return True
 
 
@@ -38,7 +39,7 @@ class CorrelationIdFilter(Filter):
 
 
 class CeleryTracingIdsFilter(Filter):
-    def __init__(self, name: str = '', uuid_length: int = 32):
+    def __init__(self, name: str = '', uuid_length: Optional[int] = None):
         super().__init__(name=name)
         self.uuid_length = uuid_length
 
@@ -52,7 +53,7 @@ class CeleryTracingIdsFilter(Filter):
         or from an endpoint, the parent ID will be None.
         """
         pid = celery_parent_id.get()
-        record.celery_parent_id = pid[: self.uuid_length] if pid else pid
+        record.celery_parent_id = _trim_string(pid, self.uuid_length)
         cid = celery_current_id.get()
-        record.celery_current_id = cid[: self.uuid_length] if cid else cid
+        record.celery_current_id = _trim_string(cid, self.uuid_length)
         return True

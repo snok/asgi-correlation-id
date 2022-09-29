@@ -484,6 +484,15 @@ load_correlation_ids()
 + load_celery_current_and_parent_ids()
 ```
 
+If you wish to correlate celery task IDs through the IDs found in your broker (i.e., the celery `task_id`), use the `use_internal_celery_task_id` argument on `load_celery_current_and_parent_ids`
+```diff
+from asgi_correlation_id.extensions.celery import load_correlation_ids, load_celery_current_and_parent_ids
+
+load_correlation_ids()
++ load_celery_current_and_parent_ids(use_internal_celery_task_id=True)
+```
+Note: `load_celery_current_and_parent_ids` will ignore the `generator` argument when `use_internal_celery_task_id` is set to `True`
+
 To set up the additional log filters, update your log config like this:
 
 ```diff
