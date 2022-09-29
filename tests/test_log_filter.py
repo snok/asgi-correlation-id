@@ -10,7 +10,8 @@ from asgi_correlation_id.context import celery_current_id, celery_parent_id, cor
 @pytest.fixture()
 def cid():
     """Set and return a correlation ID"""
-    correlation_id.set(cid := uuid4().hex)
+    cid = uuid4().hex
+    correlation_id.set(cid)
     return cid
 
 
@@ -81,7 +82,8 @@ def test_celery_filter_truncates_current_id_correctly(cid: str, log_record: LogR
     Otherwise, the id should be truncated to the specified length.
     """
     filter_ = CeleryTracingIdsFilter(uuid_length=uuid_length)
-    celery_current_id.set(celery_id := str(uuid4()))
+    celery_id = str(uuid4())
+    celery_current_id.set(celery_id)
 
     assert not hasattr(log_record, 'celery_current_id')
     filter_.filter(log_record)
@@ -94,7 +96,8 @@ def test_celery_filter_maintains_current_behavior(cid: str, log_record: LogRecor
     Since the default values of CeleryTracingIdsFilter are being changed,
     the new default values should also not trim a hex uuid.
     """
-    celery_current_id.set(celery_id := uuid4().hex)
+    celery_id = uuid4().hex
+    celery_current_id.set(celery_id)
     new_filter = CeleryTracingIdsFilter()
 
     assert not hasattr(log_record, 'celery_current_id')
