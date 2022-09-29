@@ -10,16 +10,14 @@ from asgi_correlation_id.context import celery_current_id, celery_parent_id, cor
 @pytest.fixture()
 def cid():
     """Set and return a correlation ID"""
-    cid = uuid4().hex
-    correlation_id.set(cid)
+    correlation_id.set(cid := uuid4().hex)
     return cid
 
 
 @pytest.fixture()
 def log_record():
     """Create and return an INFO-level log record"""
-    record = LogRecord(name='', level=INFO, pathname='', lineno=0, msg='Hello, world!', args=(), exc_info=None)
-    return record
+    return LogRecord(name='', level=INFO, pathname='', lineno=0, msg='Hello, world!', args=(), exc_info=None)
 
 
 def test_filter_has_uuid_length_attributes():
@@ -27,7 +25,7 @@ def test_filter_has_uuid_length_attributes():
     assert filter_.uuid_length == 8
 
 
-def test_filter_adds_correlation_id(cid, log_record):
+def test_filter_adds_correlation_id(cid: str, log_record: LogRecord):
     filter_ = CorrelationIdFilter()
 
     assert not hasattr(log_record, 'correlation_id')
@@ -35,7 +33,7 @@ def test_filter_adds_correlation_id(cid, log_record):
     assert log_record.correlation_id == cid
 
 
-def test_filter_truncates_correlation_id(cid, log_record):
+def test_filter_truncates_correlation_id(cid: str, log_record: LogRecord):
     filter_ = CorrelationIdFilter(uuid_length=8)
 
     assert not hasattr(log_record, 'correlation_id')
@@ -49,7 +47,7 @@ def test_celery_filter_has_uuid_length_attributes():
     assert filter_.uuid_length == 8
 
 
-def test_celery_filter_adds_parent_id(cid, log_record):
+def test_celery_filter_adds_parent_id(cid: str, log_record: LogRecord):
     filter_ = CeleryTracingIdsFilter()
     celery_parent_id.set('a')
 
@@ -58,7 +56,7 @@ def test_celery_filter_adds_parent_id(cid, log_record):
     assert log_record.celery_parent_id == 'a'
 
 
-def test_celery_filter_adds_current_id(cid, log_record):
+def test_celery_filter_adds_current_id(cid: str, log_record: LogRecord):
     filter_ = CeleryTracingIdsFilter()
     celery_current_id.set('b')
 
@@ -67,25 +65,36 @@ def test_celery_filter_adds_current_id(cid, log_record):
     assert log_record.celery_current_id == 'b'
 
 
-def test_celery_filter_does_not_truncate_current_id(cid, log_record):
-    filter_ = CeleryTracingIdsFilter()
-    celery_id: str = str(uuid4())
-    celery_current_id.set(celery_id)
+@pytest.mark.parametrize(
+    ('uuid_length', 'expected'),
+    [
+        (6, 6),
+        (16, 16),
+        (None, 36),
+        (38, 36),
+    ],
+)
+def test_celery_filter_truncates_current_id_correctly(cid: str, log_record: LogRecord, uuid_length, expected):
+    """
+    If uuid is unspecified, the default should be 36.
+
+    Otherwise, the id should be truncated to the specified length.
+    """
+    filter_ = CeleryTracingIdsFilter(uuid_length=uuid_length)
+    celery_current_id.set(celery_id := str(uuid4()))
 
     assert not hasattr(log_record, 'celery_current_id')
     filter_.filter(log_record)
-    assert log_record.celery_current_id == celery_id
+    assert log_record.celery_current_id == celery_id[:expected]
 
 
-def test_celery_filter_maintains_current_behavior(cid, log_record):
+def test_celery_filter_maintains_current_behavior(cid: str, log_record: LogRecord):
     """Maintain default behavior with signature change
 
     Since the default values of CeleryTracingIdsFilter are being changed,
     the new default values should also not trim a hex uuid.
     """
-    celery_id: str = uuid4().hex
-    celery_current_id.set(celery_id)
-
+    celery_current_id.set(celery_id := uuid4().hex)
     new_filter = CeleryTracingIdsFilter()
 
     assert not hasattr(log_record, 'celery_current_id')
@@ -102,13 +111,3 @@ def test_celery_filter_maintains_current_behavior(cid, log_record):
     original_filter_record_id = log_record.celery_current_id
 
     assert original_filter_record_id == new_filter_record_id
-
-
-def test_celery_filter_does_truncates_current_id(cid, log_record):
-    filter_ = CeleryTracingIdsFilter(uuid_length=16)
-    celery_id: str = uuid4().hex
-    celery_current_id.set(celery_id)
-
-    assert not hasattr(log_record, 'celery_current_id')
-    filter_.filter(log_record)
-    assert log_record.celery_current_id == celery_id[:16]
