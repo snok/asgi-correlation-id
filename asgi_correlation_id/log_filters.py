@@ -8,12 +8,7 @@ if TYPE_CHECKING:
 
 
 def _trim_string(string: Optional[str], string_length: Optional[int]) -> Optional[str]:
-    trimmed_string: Optional[str]
-    if string_length is not None and string:
-        trimmed_string = string[:string_length]
-    else:
-        trimmed_string = string
-    return trimmed_string
+    return string[:string_length] if string_length is not None and string else string
 
 
 # Middleware
