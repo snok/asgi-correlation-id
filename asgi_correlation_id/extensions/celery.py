@@ -8,12 +8,10 @@ from asgi_correlation_id.extensions.sentry import get_sentry_extension
 if TYPE_CHECKING:
     from celery import Task
 
-uuid_hex_generator_fn: Callable[[], str] = lambda: uuid4().hex
+uuid_hex_generator: Callable[[], str] = lambda: uuid4().hex
 
 
-def load_correlation_ids(
-    header_key: str = 'CORRELATION_ID', generator: Callable[[], str] = uuid_hex_generator_fn
-) -> None:
+def load_correlation_ids(header_key: str = 'CORRELATION_ID', generator: Callable[[], str] = uuid_hex_generator) -> None:
     """
     Transfer correlation IDs from a HTTP request to a Celery worker,
     when spawned from a request.
@@ -66,7 +64,7 @@ def load_correlation_ids(
 
 def load_celery_current_and_parent_ids(
     header_key: str = 'CELERY_PARENT_ID',
-    generator: Callable[[], str] = uuid_hex_generator_fn,
+    generator: Callable[[], str] = uuid_hex_generator,
     use_internal_celery_task_id: bool = False,
 ) -> None:
     """
