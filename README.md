@@ -205,7 +205,7 @@ from starlette.requests import Request
 from starlette.responses import PlainTextResponse
 from starlette.applications import Starlette
 
-from asgi_correlation_id.context import correlation_id
+from asgi_correlation_id import correlation_id
 
 
 async def custom_exception_handler(request: Request, exc: Exception) -> PlainTextResponse:
@@ -235,7 +235,7 @@ from fastapi import HTTPException, Request
 from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import JSONResponse
 
-from asgi_correlation_id.context import correlation_id
+from asgi_correlation_id import correlation_id
 
 
 @app.exception_handler(Exception)
@@ -329,7 +329,7 @@ import logging
 from typing import Any
 
 import structlog
-from asgi_correlation_id.context import correlation_id
+from asgi_correlation_id import correlation_id
 
 
 def add_correlation(
@@ -367,7 +367,7 @@ workers by using the event hooks provided by the library:
 ```python
 from uuid import uuid4
 
-from asgi_correlation_id.context import correlation_id
+from asgi_correlation_id import correlation_id
 from saq import Job, Queue
 
 
