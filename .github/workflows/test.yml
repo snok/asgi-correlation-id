@@ -58,6 +58,11 @@ jobs:
           poetry add fastapi==${{ matrix.fastapi-version }}
           poetry install --no-interaction --no-root
         if: steps.cache-venv.outputs.cache-hit != 'true'
+      - run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install importlib-metadata==4.13.0
+        if: matrix.python-version == '3.7.14'
       - name: Run tests
         run: |
           source .venv/bin/activate
