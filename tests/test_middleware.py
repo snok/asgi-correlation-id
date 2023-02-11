@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import pytest
-from fastapi import Response
 from httpx import AsyncClient
+from starlette.responses import Response
 from starlette.testclient import TestClient
 
 from asgi_correlation_id.middleware import FAILED_VALIDATION_MESSAGE
