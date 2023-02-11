@@ -423,6 +423,8 @@ to connect logs to a Sentry event.
 
 ## Celery
 
+> Note: If you're using the celery integration, install the package with `pip install asgi-correlation-id[celery]`
+
 For Celery user's there's one primary issue: workers run as completely separate processes, so correlation IDs are lost
 when spawning background tasks from requests.
 
