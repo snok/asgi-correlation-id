@@ -48,6 +48,7 @@ def _configure_logging():
 TRANSFORMER_VALUE = 'some-id'
 
 default_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware)])
+update_request_header_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware, update_request_header=True)])
 no_validator_or_transformer_app = FastAPI(
     middleware=[Middleware(CorrelationIdMiddleware, validator=None, transformer=None)]
 )
