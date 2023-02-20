@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Callable, Optional
 from uuid import UUID, uuid4
 
-from starlette.datastructures import Headers, MutableHeaders
+from starlette.datastructures import MutableHeaders
 
 from asgi_correlation_id.context import correlation_id
 from asgi_correlation_id.extensions.sentry import get_sentry_extension
@@ -31,6 +31,7 @@ FAILED_VALIDATION_MESSAGE = 'Generated new request ID (%s), since request header
 class CorrelationIdMiddleware:
     app: 'ASGIApp'
     header_name: str = 'X-Request-ID'
+    update_request_header: bool = False
 
     # ID-generating callable
     generator: Callable[[], str] = field(default=lambda: uuid4().hex)
@@ -50,7 +51,8 @@ class CorrelationIdMiddleware:
             return
 
         # Try to load request ID from the request headers
-        header_value = Headers(scope=scope).get(self.header_name.lower())
+        headers = MutableHeaders(scope=scope)
+        header_value = headers.get(self.header_name.lower())
 
         if not header_value:
             # Generate request ID if none was found
@@ -66,6 +68,10 @@ class CorrelationIdMiddleware:
         # Clean/change the ID if needed
         if self.transformer:
             id_value = self.transformer(id_value)
+
+        # Update the request headers if needed
+        if id_value != header_value and self.update_request_header is True:
+            headers[self.header_name] = id_value
 
         correlation_id.set(id_value)
         self.sentry_extension(id_value)

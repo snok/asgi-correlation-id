@@ -148,6 +148,7 @@ The middleware can be configured in a few ways, but there are no required argume
 app.add_middleware(
     CorrelationIdMiddleware,
     header_name='X-Request-ID',
+    update_request_header=False,
     generator=lambda: uuid4().hex,
     validator=is_valid_uuid4,
     transformer=lambda a: a,
@@ -162,6 +163,13 @@ Configurable middleware arguments include:
 - Default: `X-Request-ID`
 - Description: The header name decides which HTTP header value to read correlation IDs from. `X-Request-ID` and
   `X-Correlation-ID` are common choices.
+
+**update_request_header**
+
+- Type: `bool`
+- Default: `False`
+- Description: Whether to update incoming request's header value with the generated correlation ID. This is to support
+  use cases where it's relied on the presence of the request header (like various tracing middlewares).
 
 **generator**
 
