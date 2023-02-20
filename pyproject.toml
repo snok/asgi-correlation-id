@@ -52,7 +52,7 @@ starlette = ">=0.18"
 celery = { version = '*', optional = true }
 
 [tool.poetry.dev-dependencies]
-pre-commit = "^2.9.2"
+pre-commit = "*"
 pytest = "*"
 pytest-mock = "*"
 sentry-sdk = "*"
