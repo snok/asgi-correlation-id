@@ -80,7 +80,6 @@ class CorrelationIdMiddleware:
             if message['type'] == 'http.response.start' and correlation_id.get():
                 headers = MutableHeaders(scope=message)
                 headers.append(self.header_name, correlation_id.get())
-                headers.append('Access-Control-Expose-Headers', self.header_name)
 
             await send(message)
 
