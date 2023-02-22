@@ -222,8 +222,8 @@ middleware = [
         CORSMiddleware,
         allow_origins=['*'],
         allow_methods=['*'],
-        allow_headers=['X-Request-ID'],
-        expose_headers=['X-Requested-With', 'X-Request-ID']
+        allow_headers=['X-Requested-With', 'X-Request-ID'],
+        expose_headers=['X-Request-ID']
     )
 ]
 
@@ -243,8 +243,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=['*'],
     allow_methods=['*'],
-    allow_headers=['X-Request-ID'],
-    expose_headers=['X-Requested-With', 'X-Request-ID']
+    allow_headers=['X-Requested-With', 'X-Request-ID'],
+    expose_headers=['X-Request-ID']
 )
 ```
 
