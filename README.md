@@ -196,6 +196,60 @@ Configurable middleware arguments include:
   The argument was added for cases where users might want to alter incoming or generated ID values in some way. It
   provides a mechanism for transforming an incoming ID in a way you see fit. See the middleware code for more context.
 
+## CORS
+
+If you are using cross-origin resource sharing ([CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)), e.g.
+you are making requests to an API from a frontend JavaScript code served from a different origin, you have to ensure
+two things:
+
+- permit correlation ID header in the incoming requests' HTTP headers so the value can be reused by the middleware,
+- add the correlation ID header to the allowlist in responses' HTTP headers so it can be accessed by the browser.
+
+This can be best accomplished by using a dedicated middleware for your framework of choice. Here are some examples.
+
+### Starlette
+
+Docs: https://www.starlette.io/middleware/#corsmiddleware
+
+```python
+from starlette.applications import Starlette
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
+
+
+middleware = [
+    Middleware(
+        CORSMiddleware,
+        allow_origins=['*'],
+        allow_methods=['*'],
+        allow_headers=['X-Request-ID'],
+        expose_headers=['X-Requested-With', 'X-Request-ID']
+    )
+]
+
+app = Starlette(..., middleware=middleware)
+```
+
+### FastAPI
+
+Docs: https://fastapi.tiangolo.com/tutorial/cors/
+
+```python
+from app.main import app
+from fastapi.middleware.cors import CORSMiddleware
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_methods=['*'],
+    allow_headers=['X-Request-ID'],
+    expose_headers=['X-Requested-With', 'X-Request-ID']
+)
+```
+
+For more details on the topic, refer to the [CORS protocol](https://fetch.spec.whatwg.org/#http-cors-protocol).
+
 ## Exception handling
 
 By default, the `X-Request-ID` response header will be included in all responses from the server, *except* in the case
@@ -253,6 +307,9 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
             headers={'X-Request-ID': correlation_id.get() or ""}
         ))
 ```
+
+If you are using CORS, you also have to include the `Access-Control-Allow-Origin` and `Access-Control-Expose-Headers`
+headers in the error response. For more details, see the [CORS section](#cors) above.
 
 # Setting up logging from scratch
 
