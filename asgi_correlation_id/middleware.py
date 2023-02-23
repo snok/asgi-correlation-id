@@ -31,7 +31,7 @@ FAILED_VALIDATION_MESSAGE = 'Generated new request ID (%s), since request header
 class CorrelationIdMiddleware:
     app: 'ASGIApp'
     header_name: str = 'X-Request-ID'
-    update_request_header: bool = False
+    update_request_header: bool = True
 
     # ID-generating callable
     generator: Callable[[], str] = field(default=lambda: uuid4().hex)
