@@ -1,12 +1,21 @@
-from typing import TYPE_CHECKING, Any, Callable, Dict
+from contextvars import ContextVar
+from logging import Filter, LogRecord
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 from uuid import uuid4
 
 from celery.signals import before_task_publish, task_postrun, task_prerun
 
-from asgi_correlation_id.extensions.sentry import get_sentry_extension
-
 if TYPE_CHECKING:
     from celery import Task
+
+__all__ = (
+    'CeleryTracingIdsFilter',
+    'celery_current_id',
+    'celery_parent_id',
+)
+
+celery_parent_id: ContextVar[Optional[str]] = ContextVar('celery_parent', default=None)
+celery_current_id: ContextVar[Optional[str]] = ContextVar('celery_current', default=None)
 
 uuid_hex_generator: Callable[[], str] = lambda: uuid4().hex
 
@@ -20,7 +29,13 @@ def load_correlation_ids(header_key: str = 'CORRELATION_ID', generator: Callable
     """
     from asgi_correlation_id.context import correlation_id
 
-    sentry_extension = get_sentry_extension()
+    # Load sentry extension if it's present
+    try:
+        from asgi_correlation_id_sentry_extension import get_sentry_extension
+
+        sentry_extension = get_sentry_extension()
+    except ImportError:
+        sentry_extension = lambda _: None  # noqa: E731
 
     @before_task_publish.connect(weak=False)
     def transfer_correlation_id(headers: Dict[str, str], **kwargs: Any) -> None:
@@ -73,7 +88,6 @@ def load_celery_current_and_parent_ids(
     This is not called automatically by the middleware.
     To use this, users should manually run it during startup.
     """
-    from asgi_correlation_id.context import celery_current_id, celery_parent_id
 
     @before_task_publish.connect(weak=False)
     def publish_task_from_worker_or_request(headers: Dict[str, str], **kwargs: Any) -> None:
@@ -106,3 +120,24 @@ def load_celery_current_and_parent_ids(
         """
         celery_current_id.set(None)
         celery_parent_id.set(None)
+
+
+class CeleryTracingIdsFilter(Filter):
+    def __init__(self, name: str = '', uuid_length: Optional[int] = None):
+        super().__init__(name=name)
+        self.uuid_length = uuid_length
+
+    def filter(self, record: LogRecord) -> bool:
+        """
+        Append a parent- and current ID to the log record.
+
+        The celery current ID is a unique ID generated for each new worker process.
+        The celery parent ID is the current ID of the worker process that spawned
+        the current process. If the worker process was spawned by a beat process
+        or from an endpoint, the parent ID will be None.
+        """
+        pid = celery_parent_id.get()
+        record.celery_parent_id = pid[: self.uuid_length] if self.uuid_length is not None and pid else pid
+        cid = celery_current_id.get()
+        record.celery_current_id = cid[: self.uuid_length] if self.uuid_length is not None and cid else cid
+        return True

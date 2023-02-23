@@ -1,17 +1,10 @@
 from logging import Filter
 from typing import TYPE_CHECKING, Optional
 
-from asgi_correlation_id.context import celery_current_id, celery_parent_id, correlation_id
+from asgi_correlation_id.context import correlation_id
 
 if TYPE_CHECKING:
     from logging import LogRecord
-
-
-def _trim_string(string: Optional[str], string_length: Optional[int]) -> Optional[str]:
-    return string[:string_length] if string_length is not None and string else string
-
-
-# Middleware
 
 
 class CorrelationIdFilter(Filter):
@@ -31,29 +24,5 @@ class CorrelationIdFilter(Filter):
         metadata.
         """
         cid = correlation_id.get()
-        record.correlation_id = _trim_string(cid, self.uuid_length)
-        return True
-
-
-# Celery extension
-
-
-class CeleryTracingIdsFilter(Filter):
-    def __init__(self, name: str = '', uuid_length: Optional[int] = None):
-        super().__init__(name=name)
-        self.uuid_length = uuid_length
-
-    def filter(self, record: 'LogRecord') -> bool:
-        """
-        Append a parent- and current ID to the log record.
-
-        The celery current ID is a unique ID generated for each new worker process.
-        The celery parent ID is the current ID of the worker process that spawned
-        the current process. If the worker process was spawned by a beat process
-        or from an endpoint, the parent ID will be None.
-        """
-        pid = celery_parent_id.get()
-        record.celery_parent_id = _trim_string(pid, self.uuid_length)
-        cid = celery_current_id.get()
-        record.celery_current_id = _trim_string(cid, self.uuid_length)
+        record.correlation_id = cid[: self.uuid_length] if self.uuid_length is not None and cid else cid
         return True

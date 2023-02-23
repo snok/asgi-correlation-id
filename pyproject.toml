@@ -68,7 +68,8 @@ websockets = "*"
 pytest-celery = "*"
 
 [tool.poetry.extras]
-celery = ['celery']
+celery = ['asgi-correlation-id-celery-extension']
+sentry = ['asgi-correlation-id-sentry-extension']
 
 [build-system]
 requires = ["poetry>=0.12"]
