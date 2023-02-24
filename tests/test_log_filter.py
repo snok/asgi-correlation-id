@@ -1,3 +1,4 @@
+import contextvars
 from logging import INFO, LogRecord
 from uuid import uuid4
 
@@ -5,6 +6,12 @@ import pytest
 
 from asgi_correlation_id import CeleryTracingIdsFilter, CorrelationIdFilter
 from asgi_correlation_id.context import celery_current_id, celery_parent_id, correlation_id
+
+# Initialize context variables to obtain reset tokens which we can later use
+# when testing application of filter default values.
+correlation_id_token: contextvars.Token = correlation_id.set(None)
+celery_parent_id_token: contextvars.Token = celery_parent_id.set(None)
+celery_current_id_token: contextvars.Token = celery_current_id.set(None)
 
 
 @pytest.fixture()
@@ -26,6 +33,11 @@ def test_filter_has_uuid_length_attributes():
     assert filter_.uuid_length == 8
 
 
+def test_filter_has_default_value_attributes():
+    filter_ = CorrelationIdFilter(default_value='-')
+    assert filter_.default_value == '-'
+
+
 def test_filter_adds_correlation_id(cid: str, log_record: LogRecord):
     filter_ = CorrelationIdFilter()
 
@@ -43,9 +55,27 @@ def test_filter_truncates_correlation_id(cid: str, log_record: LogRecord):
     assert cid.startswith(log_record.correlation_id)  # And needs to be the first 8 characters of the id
 
 
+def test_filter_uses_default_value(cid: str, log_record: LogRecord):
+    """
+    We expect the filter to set the log record attribute to the default value
+    if the context variable is not set.
+    """
+    filter_ = CorrelationIdFilter(default_value='-')
+    correlation_id.reset(correlation_id_token)
+
+    assert not hasattr(log_record, 'correlation_id')
+    filter_.filter(log_record)
+    assert log_record.correlation_id == '-'
+
+
 def test_celery_filter_has_uuid_length_attributes():
     filter_ = CeleryTracingIdsFilter(uuid_length=8)
     assert filter_.uuid_length == 8
+
+
+def test_celery_filter_has_default_value_attributes():
+    filter_ = CeleryTracingIdsFilter(default_value='-')
+    assert filter_.default_value == '-'
 
 
 def test_celery_filter_adds_parent_id(cid: str, log_record: LogRecord):
@@ -64,6 +94,22 @@ def test_celery_filter_adds_current_id(cid: str, log_record: LogRecord):
     assert not hasattr(log_record, 'celery_current_id')
     filter_.filter(log_record)
     assert log_record.celery_current_id == 'b'
+
+
+def test_celery_filter_uses_default_value(cid: str, log_record: LogRecord):
+    """
+    We expect the filter to set the log record attributes to the default value
+    if the context variables are not not set.
+    """
+    filter_ = CeleryTracingIdsFilter(default_value='-')
+    celery_parent_id.reset(celery_parent_id_token)
+    celery_current_id.reset(celery_current_id_token)
+
+    assert not hasattr(log_record, 'celery_parent_id')
+    assert not hasattr(log_record, 'celery_current_id')
+    filter_.filter(log_record)
+    assert log_record.celery_parent_id == '-'
+    assert log_record.celery_current_id == '-'
 
 
 @pytest.mark.parametrize(
