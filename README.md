@@ -112,6 +112,7 @@ LOGGING = {
 +       'correlation_id': {
 +           '()': 'asgi_correlation_id.CorrelationIdFilter',
 +           'uuid_length': 32,
++           'default_value': '-',
 +       },
 +   },
     'formatters': {
@@ -341,6 +342,7 @@ def configure_logging() -> None:
                 'correlation_id': {
                     '()': 'asgi_correlation_id.CorrelationIdFilter',
                     'uuid_length': 8 if not settings.ENVIRONMENT == 'local' else 32,
+                    'default_value': '-',
                 },
             },
             'formatters': {
@@ -564,10 +566,12 @@ LOGGING = {
         'correlation_id': {
 +           '()': 'asgi_correlation_id.CorrelationIdFilter',
 +           'uuid_length': 32,
++           'default_value': '-',
 +       },
 +       'celery_tracing': {
 +            '()': 'asgi_correlation_id.CeleryTracingIdsFilter',
 +            'uuid_length': 32,
++            'default_value': '-',
 +       },
     },
     'formatters': {
@@ -646,7 +650,7 @@ your logs could look something like this:
    correlation-id               current-id
           |        parent-id        |
           |            |            |
-INFO [3b162382e1] [   None   ] [93ddf3639c] project.tasks - Debug task 1
+INFO [3b162382e1] [    -     ] [93ddf3639c] project.tasks - Debug task 1
 INFO [3b162382e1] [93ddf3639c] [24046ab022] project.tasks - Debug task 2
 INFO [3b162382e1] [93ddf3639c] [cb5595a417] project.tasks - Debug task 2
 INFO [3b162382e1] [24046ab022] [08f5428a66] project.tasks - Debug task 3
