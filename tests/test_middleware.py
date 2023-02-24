@@ -106,8 +106,9 @@ async def test_non_uuid_header(client, caplog, value, app):
 
     async with AsyncClient(app=app, base_url='http://test') as client:
         response = await client.get('test', headers={'X-Request-ID': value})
-        assert response.headers['X-Request-ID'] != value
-        assert caplog.messages[0] == FAILED_VALIDATION_MESSAGE.replace('%s', value)
+        new_value = response.headers['X-Request-ID']
+        assert new_value != value
+        assert caplog.messages[0] == FAILED_VALIDATION_MESSAGE.replace('%s', new_value)
 
 
 @pytest.mark.parametrize('app', apps)

@@ -54,13 +54,14 @@ class CorrelationIdMiddleware:
         headers = MutableHeaders(scope=scope)
         header_value = headers.get(self.header_name.lower())
 
+        validation_failed = False
         if not header_value:
             # Generate request ID if none was found
             id_value = self.generator()
         elif self.validator and not self.validator(header_value):
             # Also generate a request ID if one was found, but it was deemed invalid
+            validation_failed = True
             id_value = self.generator()
-            logger.warning(FAILED_VALIDATION_MESSAGE, header_value)
         else:
             # Otherwise, use the found request ID
             id_value = header_value
@@ -68,6 +69,9 @@ class CorrelationIdMiddleware:
         # Clean/change the ID if needed
         if self.transformer:
             id_value = self.transformer(id_value)
+
+        if validation_failed is True:
+            logger.warning(FAILED_VALIDATION_MESSAGE, id_value)
 
         # Update the request headers if needed
         if id_value != header_value and self.update_request_header is True:
