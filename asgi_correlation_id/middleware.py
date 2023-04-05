@@ -46,7 +46,7 @@ class CorrelationIdMiddleware:
         """
         Load request ID from headers if present. Generate one otherwise.
         """
-        if scope['type'] != 'http':
+        if scope['type'] not in ('http', 'websocket'):
             await self.app(scope, receive, send)
             return
 
