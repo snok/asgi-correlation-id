@@ -469,38 +469,24 @@ priority_settings = {
 ```
 
 # Integration with [Uvicorn](https://github.com/encode/uvicorn)
-[Uvicorn](https://github.com/encode/uvicorn) is one of the ASGI servers
-used to run a [FastAPI](https://fastapi.tiangolo.com/deployment/manually/) application.
+To add a correlation ID to your [uvicorn](https://github.com/encode/uvicorn) logs, you'll need to add a log filter and change the log formatting. Here's an example of how to configure uvicorn, if you're running a [FastAPI](https://fastapi.tiangolo.com/deployment/manually/) app:
 
 ```
 import logging
 import os
+
 import asgi_correlation_id
-from fastapi import \
-    APIRouter, \
-    FastAPI
 import uvicorn
+from fastapi import APIRouter, FastAPI
 from uvicorn.config import LOGGING_CONFIG
 
 
 def configure_logging():
-    """
-        configure logging with correlation_id
-    """
     console_handler = logging.StreamHandler()
-    console_handler.addFilter(
-        asgi_correlation_id.CorrelationIdFilter())
+    console_handler.addFilter(asgi_correlation_id.CorrelationIdFilter())
     logging.basicConfig(
         handlers=[console_handler],
-        level=getattr(
-            logging,
-            os.environ.get("LOGLEVEL", "DEBUG")),
-        format="%(asctime)s"
-               " %(levelname)s"
-               " %(correlation_id)s"
-               " log"
-               " %(filename)s:%(funcName)s:%(lineno)d"
-               " %(message)s")
+	format="%(levelname)s log [%(correlation_id)s] %(name)s %(message)s"
 
 
 app = FastAPI(on_startup=[configure_logging])
@@ -512,24 +498,15 @@ router = APIRouter()
 async def test_get():
     logger = logging.getLogger()
     logger.info("test_get")
-    result = True
-    return result
 
 
 app.include_router(router)
 
 
 if __name__ == "__main__":
-    # add correlation_id in uvicorn access_log
-    LOGGING_CONFIG["handlers"]["access"]["filters"] = [
-            asgi_correlation_id.CorrelationIdFilter()]
-    LOGGING_CONFIG["formatters"]["access"]["fmt"] = \
-        "%(asctime)s %(levelname)s %(correlation_id)s" \
-        " access %(client_addr)s - %(request_line)s %(status_code)s"
-    uvicorn.run(
-        "test:app",
-        port=8080,
-        log_level=os.environ.get("LOGLEVEL", "DEBUG").lower())
+    LOGGING_CONFIG["handlers"]["access"]["filters"] = [asgi_correlation_id.CorrelationIdFilter()]
+    LOGGING_CONFIG["formatters"]["access"]["fmt"] = "%(levelname)s access [%(correlation_id)s] %(name)s %(message)s"
+    uvicorn.run("test:app", port=8080, log_level=os.environ.get("LOGLEVEL", "DEBUG").lower())
 ```
 
 # Extensions
