@@ -468,6 +468,47 @@ priority_settings = {
 }
 ```
 
+# Integration with [Uvicorn](https://github.com/encode/uvicorn)
+To add a correlation ID to your [uvicorn](https://github.com/encode/uvicorn) logs, you'll need to add a log filter and change the log formatting. Here's an example of how to configure uvicorn, if you're running a [FastAPI](https://fastapi.tiangolo.com/deployment/manually/) app:
+
+```
+import logging
+import os
+
+import asgi_correlation_id
+import uvicorn
+from fastapi import APIRouter, FastAPI
+from uvicorn.config import LOGGING_CONFIG
+
+
+def configure_logging():
+    console_handler = logging.StreamHandler()
+    console_handler.addFilter(asgi_correlation_id.CorrelationIdFilter())
+    logging.basicConfig(
+        handlers=[console_handler],
+	format="%(levelname)s log [%(correlation_id)s] %(name)s %(message)s"
+
+
+app = FastAPI(on_startup=[configure_logging])
+app.add_middleware(asgi_correlation_id.CorrelationIdMiddleware)
+router = APIRouter()
+
+
+@router.get("/test")
+async def test_get():
+    logger = logging.getLogger()
+    logger.info("test_get")
+
+
+app.include_router(router)
+
+
+if __name__ == "__main__":
+    LOGGING_CONFIG["handlers"]["access"]["filters"] = [asgi_correlation_id.CorrelationIdFilter()]
+    LOGGING_CONFIG["formatters"]["access"]["fmt"] = "%(levelname)s access [%(correlation_id)s] %(name)s %(message)s"
+    uvicorn.run("test:app", port=8080, log_level=os.environ.get("LOGLEVEL", "DEBUG").lower())
+```
+
 # Extensions
 
 In addition to the middleware, we've added a couple of extensions for third-party packages.
