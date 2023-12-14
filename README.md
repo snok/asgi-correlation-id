@@ -486,7 +486,8 @@ def configure_logging():
     console_handler.addFilter(asgi_correlation_id.CorrelationIdFilter())
     logging.basicConfig(
         handlers=[console_handler],
-	format="%(levelname)s log [%(correlation_id)s] %(name)s %(message)s"
+        level="INFO",
+        format="%(levelname)s log [%(correlation_id)s] %(name)s %(message)s")
 
 
 app = FastAPI(on_startup=[configure_logging])
@@ -507,6 +508,18 @@ if __name__ == "__main__":
     LOGGING_CONFIG["handlers"]["access"]["filters"] = [asgi_correlation_id.CorrelationIdFilter()]
     LOGGING_CONFIG["formatters"]["access"]["fmt"] = "%(levelname)s access [%(correlation_id)s] %(name)s %(message)s"
     uvicorn.run("test:app", port=8080, log_level=os.environ.get("LOGLEVEL", "DEBUG").lower())
+```
+
+```
+# run it
+python test.py
+
+# test it
+curl http://localhost:8080/test
+
+# log on stdout
+INFO log [16b61d57f9ff4a85ac80f5cd406e0aa2] root test_get
+INFO access [16b61d57f9ff4a85ac80f5cd406e0aa2] uvicorn.access 127.0.0.1:24810 - "GET /test HTTP/1.1" 200
 ```
 
 # Extensions
