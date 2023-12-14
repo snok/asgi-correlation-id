@@ -468,6 +468,93 @@ priority_settings = {
 }
 ```
 
+# Integration with [hypercorn](https://github.com/pgjones/hypercorn)
+To add a correlation ID to your [hypercorn](https://github.com/pgjones/hypercorn) logs, you'll need to add a log filter and change the log formatting. Here's an example of how to configure hypercorn, if you're running a [FastAPI](https://fastapi.tiangolo.com/deployment/manually/) app:
+
+```
+import logging
+import os
+
+from fastapi import APIRouter, FastAPI
+from hypercorn.config import Config
+from hypercorn.asyncio import serve
+import asgi_correlation_id
+import asyncio
+import hypercorn
+
+
+def configure_logging():
+    console_handler = logging.StreamHandler()
+    console_handler.addFilter(asgi_correlation_id.CorrelationIdFilter())
+    logging.basicConfig(
+        handlers=[console_handler],
+        level="INFO",
+	format="%(levelname)s log [%(correlation_id)s] %(name)s %(message)s")
+
+
+app = FastAPI(on_startup=[configure_logging])
+app.add_middleware(asgi_correlation_id.CorrelationIdMiddleware)
+router = APIRouter()
+
+
+@router.get("/test")
+async def test_get():
+    print("toto")
+    logger = logging.getLogger()
+    logger.info("test_get")
+
+
+app.include_router(router)
+
+
+if __name__ == "__main__":
+    logConfig = {
+        "handlers": {
+            "hypercorn.access": {
+                "formatter": "hypercorn.access",
+                "level": "INFO",
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stdout",
+                "filters": [
+                    asgi_correlation_id.CorrelationIdFilter()
+                ],
+        }},
+        "formatters": {
+            "hypercorn.access": {
+                "format": "%(message)s %(correlation_id)s",
+            }
+        },
+        "loggers": {
+            "hypercorn.access": {
+                "handlers": [
+                    "hypercorn.access"
+                ],
+                "level": "INFO",
+            },
+        },
+        "version": 1
+    }
+
+    config = Config()
+    # write access log to stdout
+    config.accesslog = "-"
+
+    config.logconfig_dict = logConfig
+    asyncio.run(serve(app, config))
+```
+
+```
+# run it
+$ python3 test.py
+
+# test it:
+$ curl http://localhost:8080/test
+
+# log on stdout:
+INFO log [7e7ccfff352a428991920d1da2502674] root test_get
+127.0.0.1:34754 - - [14/Dec/2023:10:34:08 +0100] "GET /test 1.1" 200 4 "-" "curl/7.76.1" 7e7ccfff352a428991920d1da2502674
+```
+
 # Integration with [Uvicorn](https://github.com/encode/uvicorn)
 To add a correlation ID to your [uvicorn](https://github.com/encode/uvicorn) logs, you'll need to add a log filter and change the log formatting. Here's an example of how to configure uvicorn, if you're running a [FastAPI](https://fastapi.tiangolo.com/deployment/manually/) app:
 
