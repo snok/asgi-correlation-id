@@ -27,11 +27,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.7.14", "3.8.14", "3.9.15", "3.10.8", "3.11.0" ]
+        python-version: [ "3.8.18", "3.9.18", "3.10.13", "3.11.7", "3.12.1" ]
         # Ideally we would test starlette versions, not FastAPI,
         # but our test suite currently uses FastAPI comprehensively,
         # so we would need to redo that first.
-        fastapi-version: [ "0.78", "0.79", "0.87"]
+        fastapi-version: [ "0.106", "0.107", "0.108"]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4

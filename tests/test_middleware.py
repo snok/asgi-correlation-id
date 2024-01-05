@@ -93,7 +93,7 @@ bad_uuids = [
 
 @pytest.mark.parametrize('value', bad_uuids)
 @pytest.mark.parametrize('app', [default_app, transformer_app, generator_app])
-async def test_non_uuid_header(client, caplog, value, app):
+async def test_non_uuid_header(caplog, value, app):
     """
     We expect the middleware to ignore our request ID and log a warning
     when the request ID we pass doesn't correspond to the uuid4 format.
