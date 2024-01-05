@@ -1,4 +1,5 @@
 import logging
+import warnings
 from uuid import UUID, uuid4
 
 import pytest
@@ -48,7 +49,10 @@ async def test_endpoint_to_worker_to_worker(client, caplog, celery_session_app, 
     caplog.set_level('DEBUG')
 
     cid = uuid4().hex
-    await client.get('celery-test', headers={'X-Request-ID': cid})
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        await client.get('celery-test', headers={'X-Request-ID': cid})
 
     # Check the view record
     assert caplog.records[0].correlation_id == cid
