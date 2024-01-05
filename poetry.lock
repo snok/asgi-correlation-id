@@ -452,25 +452,23 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "fastapi"
-version = "0.1.17"
+version = "0.108.0"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
 category = "dev"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 files = [
-    {file = "fastapi-0.1.17-py3-none-any.whl", hash = "sha256:a6aaad2f60684477480ac9d7a1c95e67f4696a722f184db467494bfdd5b8f29d"},
-    {file = "fastapi-0.1.17.tar.gz", hash = "sha256:a9a9b6cc32c38bab27a6549b94c44a30c70b485bc789d03de3aa8725f3394be5"},
+    {file = "fastapi-0.108.0-py3-none-any.whl", hash = "sha256:8c7bc6d315da963ee4cdb605557827071a9a7f95aeb8fcdd3bde48cdc8764dd7"},
+    {file = "fastapi-0.108.0.tar.gz", hash = "sha256:5056e504ac6395bf68493d71fcfc5352fdbd5fda6f88c21f6420d80d81163296"},
 ]
 
 [package.dependencies]
-pydantic = ">=0.17"
-starlette = ">=0.9.7"
+pydantic = ">=1.7.4,<1.8 || >1.8,<1.8.1 || >1.8.1,<2.0.0 || >2.0.0,<2.0.1 || >2.0.1,<2.1.0 || >2.1.0,<3.0.0"
+starlette = ">=0.29.0,<0.33.0"
+typing-extensions = ">=4.8.0"
 
 [package.extras]
-all = ["aiofiles", "email_validator", "graphene", "itsdangerous", "jinja2", "python-multipart", "pyyaml", "requests", "ujson", "ujson", "uvicorn"]
-dev = ["passlib[bcrypt]", "pyjwt"]
-doc = ["markdown-include", "mkdocs", "mkdocs-material"]
-test = ["black", "email_validator", "isort", "mypy", "pytest (>=4.0.0)", "pytest-cov", "requests"]
+all = ["email-validator (>=2.0.0)", "httpx (>=0.23.0)", "itsdangerous (>=1.1.0)", "jinja2 (>=2.11.2)", "orjson (>=3.2.1)", "pydantic-extra-types (>=2.0.0)", "pydantic-settings (>=2.0.0)", "python-multipart (>=0.0.5)", "pyyaml (>=5.3.1)", "ujson (>=4.0.1,!=4.0.2,!=4.1.0,!=4.2.0,!=4.3.0,!=5.0.0,!=5.1.0)", "uvicorn[standard] (>=0.12.0)"]
 
 [[package]]
 name = "filelock"
@@ -1104,14 +1102,14 @@ files = [
 
 [[package]]
 name = "starlette"
-version = "0.34.0"
+version = "0.32.0.post1"
 description = "The little ASGI library that shines."
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "starlette-0.34.0-py3-none-any.whl", hash = "sha256:2e14ee943f2df59eb8c141326240ce601643f1a97b577db44634f6d05d368c37"},
-    {file = "starlette-0.34.0.tar.gz", hash = "sha256:ed050aaf3896945bfaae93bdf337e53ef3f29115a9d9c153e402985115cd9c8e"},
+    {file = "starlette-0.32.0.post1-py3-none-any.whl", hash = "sha256:cd0cb10ddb49313f609cedfac62c8c12e56c7314b66d89bb077ba228bada1b09"},
+    {file = "starlette-0.32.0.post1.tar.gz", hash = "sha256:e54e2b7e2fb06dff9eac40133583f10dfa05913f5a85bf26f427c7a40a9a3d02"},
 ]
 
 [package.dependencies]
