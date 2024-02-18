@@ -4,7 +4,7 @@ version = "4.3.0"
 description = "Middleware correlating project logs to individual requests"
 authors = ["Sondre Lillebø Gundersen <sondrelg@live.no>"]
 maintainers = ["Jonas Krüger Svensson <jonas-ks@hotmail.com>"]
-license = "BSD-4-Clause"
+license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/snok/asgi-correlation-id"
 repository = "https://github.com/snok/asgi-correlation-id"
@@ -27,7 +27,7 @@ classifiers = [
     'Development Status :: 5 - Production/Stable',
     'Environment :: Web Environment',
     'Intended Audience :: Developers',
-    'License :: OSI Approved :: BSD License',
+    'License :: OSI Approved :: MIT License',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
     'Programming Language :: Python :: 3.8',
