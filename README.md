@@ -471,7 +471,7 @@ priority_settings = {
 # Integration with [hypercorn](https://github.com/pgjones/hypercorn)
 To add a correlation ID to your [hypercorn](https://github.com/pgjones/hypercorn) logs, you'll need to add a log filter and change the log formatting. Here's an example of how to configure hypercorn, if you're running a [FastAPI](https://fastapi.tiangolo.com/deployment/manually/) app:
 
-```
+```python
 import logging
 import os
 
@@ -558,7 +558,7 @@ INFO log [7e7ccfff352a428991920d1da2502674] root test_get
 # Integration with [Uvicorn](https://github.com/encode/uvicorn)
 To add a correlation ID to your [uvicorn](https://github.com/encode/uvicorn) logs, you'll need to add a log filter and change the log formatting. Here's an example of how to configure uvicorn, if you're running a [FastAPI](https://fastapi.tiangolo.com/deployment/manually/) app:
 
-```
+```python
 import logging
 import os
 
