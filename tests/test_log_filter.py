@@ -14,7 +14,7 @@ celery_parent_id_token: contextvars.Token = celery_parent_id.set(None)
 celery_current_id_token: contextvars.Token = celery_current_id.set(None)
 
 
-@pytest.fixture()
+@pytest.fixture
 def cid():
     """Set and return a correlation ID"""
     cid = uuid4().hex
@@ -22,7 +22,7 @@ def cid():
     return cid
 
 
-@pytest.fixture()
+@pytest.fixture
 def log_record():
     """Create and return an INFO-level log record"""
     return LogRecord(name='', level=INFO, pathname='', lineno=0, msg='Hello, world!', args=(), exc_info=None)
