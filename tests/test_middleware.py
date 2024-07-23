@@ -169,3 +169,12 @@ async def test_custom_generator():
     async with AsyncClient(app=generator_app, base_url='http://test') as client:
         response = await client.get('test', headers={'X-Request-ID': 'bad-uuid'})
         assert response.headers['X-Request-ID'] == TRANSFORMER_VALUE
+
+
+def test_is_valid_uuid4():
+    assert is_valid_uuid4('3758c31e-1177-4540-ba33-0109c405579a') is True
+    assert is_valid_uuid4('9e6454c4-21d5-4e4a-a66a-b28f15576414') is True
+    assert is_valid_uuid4('9e6454c421d54e4aa66ab28f15576414') is True
+    assert is_valid_uuid4('foo') is False
+    assert is_valid_uuid4('9e6454c4-21d5-4e4a-a66a-b28f15576414-1') is False
+    assert is_valid_uuid4('00000000000000000000000000000000') is False
