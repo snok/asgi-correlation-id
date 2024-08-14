@@ -1,7 +1,7 @@
 from unittest.mock import Mock
-from packaging import version
 
 import sentry_sdk
+from packaging import version
 
 from asgi_correlation_id.extensions.sentry import set_transaction_id
 
