@@ -24,8 +24,8 @@ def set_transaction_id(correlation_id: str) -> None:
     """
     import sentry_sdk
 
-    if sentry_sdk.VERSION >= '2.0.0':
-        scope = sentry_sdk.Scope.get_isolation_scope()
+    if sentry_sdk.VERSION >= '2.12.0':
+        scope = sentry_sdk.get_isolation_scope()
         scope.set_tag('transaction_id', correlation_id)
     else:
         with sentry_sdk.configure_scope() as scope:
