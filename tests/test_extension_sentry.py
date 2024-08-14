@@ -1,4 +1,5 @@
 from unittest.mock import Mock
+from packaging import version
 
 import sentry_sdk
 
@@ -11,7 +12,7 @@ def test_sentry_sdk_installed(mocker):
     """
     Check that the scope.set_tag method is called when Sentry is installed.
     """
-    if sentry_sdk.VERSION >= '2.12.0':
+    if version.parse(sentry_sdk.VERSION) >= version.parse('2.12.0'):
         set_tag_mock = Mock()
         scope_mock = Mock()
         scope_mock.set_tag = set_tag_mock
