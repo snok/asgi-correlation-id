@@ -49,6 +49,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.8"
 starlette = ">=0.18"
+packaging = "*"
 celery = { version = '*', optional = true }
 
 [tool.poetry.dev-dependencies]
