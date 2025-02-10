@@ -1,5 +1,5 @@
 from logging import Filter
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from asgi_correlation_id.context import celery_current_id, celery_parent_id, correlation_id
 
@@ -22,7 +22,7 @@ class CorrelationIdFilter(Filter):
         self.uuid_length = uuid_length
         self.default_value = default_value
 
-    def filter(self, record: 'LogRecord') -> bool:
+    def filter(self, record: 'LogRecord'| Dict[str, Any]) -> bool:
         """
         Attach a correlation ID to the log record.
 
@@ -32,7 +32,11 @@ class CorrelationIdFilter(Filter):
         metadata.
         """
         cid = correlation_id.get(self.default_value)
-        record.correlation_id = _trim_string(cid, self.uuid_length)
+        formatted_cid = _trim_string(cid, self.uuid_length)
+        if isinstance(record, dict):
+            record['correlation_id'] = formatted_cid
+        else:
+            record.correlation_id = formatted_cid
         return True
 
 
