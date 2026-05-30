@@ -1,79 +1,80 @@
-[tool.poetry]
+[project]
 name = "asgi-correlation-id"
-version = "4.3.4"
+version = "4.3.3"
 description = "Middleware correlating project logs to individual requests"
-authors = ["Sondre Lillebø Gundersen <sondrelg@live.no>"]
-maintainers = ["Jonas Krüger Svensson <jonas-ks@hotmail.com>"]
-license = "MIT"
+authors = [{ name = "Sondre Lillebø Gundersen", email = "sondrelg@live.no" }]
+requires-python = ">=3.8,<4"
 readme = "README.md"
-homepage = "https://github.com/snok/asgi-correlation-id"
-repository = "https://github.com/snok/asgi-correlation-id"
+license = "MIT"
+maintainers = [{ name = "Jonas Krüger Svensson", email = "jonas-ks@hotmail.com" }]
 keywords = [
-    'asgi',
-    'fastapi',
-    'starlette',
-    'async',
-    'correlation',
-    'correlation-id',
-    'request-id',
-    'x-request-id',
-    'tracing',
-    'logging',
-    'middleware',
-    'sentry',
-    'celery'
+    "asgi",
+    "fastapi",
+    "starlette",
+    "async",
+    "correlation",
+    "correlation-id",
+    "request-id",
+    "x-request-id",
+    "tracing",
+    "logging",
+    "middleware",
+    "sentry",
+    "celery",
 ]
 classifiers = [
-    'Development Status :: 5 - Production/Stable',
-    'Environment :: Web Environment',
-    'Intended Audience :: Developers',
-    'License :: OSI Approved :: MIT License',
-    'Operating System :: OS Independent',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
-    'Programming Language :: Python :: 3.11',
-    'Programming Language :: Python :: 3.12',
-    'Topic :: Internet :: WWW/HTTP',
-    'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-    'Topic :: Software Development',
-    'Topic :: Software Development :: Libraries',
-    'Topic :: Software Development :: Libraries :: Application Frameworks',
-    'Topic :: Software Development :: Libraries :: Python Modules',
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-packages = [
-    { include = "asgi_correlation_id" },
+dependencies = ["starlette>=0.18"]
+
+[project.optional-dependencies]
+celery = ["celery"]
+
+[project.urls]
+Homepage = "https://github.com/snok/asgi-correlation-id"
+Repository = "https://github.com/snok/asgi-correlation-id"
+
+[dependency-groups]
+dev = [
+    "pre-commit",
+    "pytest",
+    "pytest-mock",
+    "sentry-sdk",
+    "pytest-asyncio",
+    "fastapi",
+    "httpx",
+    "coverage[toml]>=6,<7 ; python_full_version >= '3.10'",
+    "coverage>=5,<7",
+    "requests",
+    "websockets",
+    "pytest-celery",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-starlette = ">=0.18"
-packaging = "*"
-celery = { version = '*', optional = true }
+[tool.uv]
 
-[tool.poetry.dev-dependencies]
-pre-commit = "*"
-pytest = "*"
-pytest-mock = "*"
-sentry-sdk = "*"
-pytest-asyncio = "*"
-fastapi = "*"
-httpx = "*"
-coverage = [
-    { extras = ["toml"], version = "^6", python = ">=3.10" },
-    { version = "^5 || ^6" },
-]
-requests = "*"
-websockets = "*"
-pytest-celery = "*"
-
-[tool.poetry.extras]
-celery = ['celery']
+[tool.uv.build-backend]
+module-name = ["asgi_correlation_id"]
+module-root = ""
 
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+requires = ["uv_build>=0.7.2,<0.8"]
+build-backend = "uv_build"
 
 [tool.black]
 quiet = true
