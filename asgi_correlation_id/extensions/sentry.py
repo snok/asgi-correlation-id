@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 
 def get_sentry_extension() -> Callable[[str], None]:

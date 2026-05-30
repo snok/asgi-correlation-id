@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from logging import LogRecord
 
 
-def _trim_string(string: Optional[str], string_length: Optional[int]) -> Optional[str]:
+def _trim_string(string: str | None, string_length: int | None) -> str | None:
     return string[:string_length] if string_length is not None and string else string
 
 
@@ -17,7 +17,7 @@ def _trim_string(string: Optional[str], string_length: Optional[int]) -> Optiona
 class CorrelationIdFilter(Filter):
     """Logging filter to attached correlation IDs to log records"""
 
-    def __init__(self, name: str = '', uuid_length: Optional[int] = None, default_value: Optional[str] = None):
+    def __init__(self, name: str = '', uuid_length: int | None = None, default_value: str | None = None):
         super().__init__(name=name)
         self.uuid_length = uuid_length
         self.default_value = default_value
@@ -40,7 +40,7 @@ class CorrelationIdFilter(Filter):
 
 
 class CeleryTracingIdsFilter(Filter):
-    def __init__(self, name: str = '', uuid_length: Optional[int] = None, default_value: Optional[str] = None):
+    def __init__(self, name: str = '', uuid_length: int | None = None, default_value: str | None = None):
         super().__init__(name=name)
         self.uuid_length = uuid_length
         self.default_value = default_value

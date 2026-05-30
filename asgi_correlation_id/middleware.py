@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Optional
+from collections.abc import Callable
 from uuid import UUID, uuid4
 
 from starlette.datastructures import MutableHeaders
@@ -37,10 +38,10 @@ class CorrelationIdMiddleware:
     generator: Callable[[], str] = field(default=lambda: uuid4().hex)
 
     # ID validator
-    validator: Optional[Callable[[str], bool]] = field(default=is_valid_uuid4)
+    validator: Callable[[str], bool] | None = field(default=is_valid_uuid4)
 
     # ID transformer - can be used to clean/mutate IDs
-    transformer: Optional[Callable[[str], str]] = field(default=lambda a: a)
+    transformer: Callable[[str], str] | None = field(default=lambda a: a)
 
     async def __call__(self, scope: 'Scope', receive: 'Receive', send: 'Send') -> None:
         """
