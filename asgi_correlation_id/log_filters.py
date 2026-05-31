@@ -1,10 +1,6 @@
-from logging import Filter
-from typing import TYPE_CHECKING
+from logging import Filter, LogRecord
 
 from asgi_correlation_id.context import celery_current_id, celery_parent_id, correlation_id
-
-if TYPE_CHECKING:
-    from logging import LogRecord
 
 
 def _trim_string(string: str | None, string_length: int | None) -> str | None:
@@ -22,7 +18,7 @@ class CorrelationIdFilter(Filter):
         self.uuid_length = uuid_length
         self.default_value = default_value
 
-    def filter(self, record: 'LogRecord') -> bool:
+    def filter(self, record: LogRecord) -> bool:
         """
         Attach a correlation ID to the log record.
 
@@ -45,7 +41,7 @@ class CeleryTracingIdsFilter(Filter):
         self.uuid_length = uuid_length
         self.default_value = default_value
 
-    def filter(self, record: 'LogRecord') -> bool:
+    def filter(self, record: LogRecord) -> bool:
         """
         Append a parent- and current ID to the log record.
 
