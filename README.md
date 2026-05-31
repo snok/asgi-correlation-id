@@ -59,12 +59,17 @@ from fastapi import FastAPI
 from asgi_correlation_id import CorrelationIdMiddleware
 
 app = FastAPI()
-app.add_middleware(CorrelationIdMiddleware)
+app = CorrelationIdMiddleware(app)
 ```
 
 or any other way your framework allows.
 
 For [Starlette](https://github.com/encode/starlette) apps, just substitute `FastAPI` with `Starlette` in all examples.
+
+> **Note:** You can also use `app.add_middleware(CorrelationIdMiddleware)`, but be aware that this places the
+> correlation ID middleware *inside* Starlette's `ServerErrorMiddleware`. This means the `X-Request-ID` header
+> won't be included in `500` error responses. The wrapping approach shown above doesn't have this limitation.
+> See [exception handling](#exception-handling) for more information.
 
 ## Configure logging
 
@@ -146,8 +151,8 @@ If you're using a json log-formatter, just add `correlation-id: %(correlation_id
 The middleware can be configured in a few ways, but there are no required arguments.
 
 ```python
-app.add_middleware(
-    CorrelationIdMiddleware,
+app = CorrelationIdMiddleware(
+    app,
     header_name='X-Request-ID',
     update_request_header=True,
     generator=lambda: uuid4().hex,
@@ -253,13 +258,16 @@ For more details on the topic, refer to the [CORS protocol](https://fetch.spec.w
 
 ## Exception handling
 
-By default, the `X-Request-ID` response header will be included in all responses from the server, *except* in the case
-of unhandled server errors. If you wish to include request IDs in the case of a `500` error you can add a custom
-exception handler.
+If you added the middleware using the recommended wrapping approach (`app = CorrelationIdMiddleware(app)`), the
+`X-Request-ID` response header will be included in *all* responses, including unhandled `500` errors. No extra
+configuration is needed.
 
-Here are some simple examples to help you get started. See each framework's documentation for more info.
+If you used `app.add_middleware(CorrelationIdMiddleware)` instead, the header will be missing from `500` responses
+because Starlette's `ServerErrorMiddleware` catches the exception before the correlation ID middleware can add the
+header. In that case, you can add a custom exception handler:
 
-### Starlette
+<details>
+<summary>Starlette exception handler</summary>
 
 Docs: https://www.starlette.io/exceptions/
 
@@ -285,7 +293,10 @@ app = Starlette(
 )
 ```
 
-### FastAPI
+</details>
+
+<details>
+<summary>FastAPI exception handler</summary>
 
 Docs: https://fastapi.tiangolo.com/tutorial/handling-errors/
 
@@ -308,6 +319,8 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
             headers={'X-Request-ID': correlation_id.get() or ""}
         ))
 ```
+
+</details>
 
 If you are using CORS, you also have to include the `Access-Control-Allow-Origin` and `Access-Control-Expose-Headers`
 headers in the error response. For more details, see the [CORS section](#cors) above.
@@ -492,8 +505,7 @@ def configure_logging():
 	format="%(levelname)s log [%(correlation_id)s] %(name)s %(message)s")
 
 
-app = FastAPI(on_startup=[configure_logging])
-app.add_middleware(asgi_correlation_id.CorrelationIdMiddleware)
+fastapi_app = FastAPI(on_startup=[configure_logging])
 router = APIRouter()
 
 
@@ -504,7 +516,8 @@ async def test_get():
     logger.info("test_get")
 
 
-app.include_router(router)
+fastapi_app.include_router(router)
+app = asgi_correlation_id.CorrelationIdMiddleware(fastapi_app)
 
 
 if __name__ == "__main__":
@@ -577,8 +590,7 @@ def configure_logging():
         format="%(levelname)s log [%(correlation_id)s] %(name)s %(message)s")
 
 
-app = FastAPI(on_startup=[configure_logging])
-app.add_middleware(asgi_correlation_id.CorrelationIdMiddleware)
+fastapi_app = FastAPI(on_startup=[configure_logging])
 router = APIRouter()
 
 
@@ -588,7 +600,8 @@ async def test_get():
     logger.info("test_get")
 
 
-app.include_router(router)
+fastapi_app.include_router(router)
+app = asgi_correlation_id.CorrelationIdMiddleware(fastapi_app)
 
 
 if __name__ == "__main__":
