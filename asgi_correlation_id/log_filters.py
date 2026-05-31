@@ -1,5 +1,5 @@
 from logging import Filter
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from asgi_correlation_id.context import celery_current_id, celery_parent_id, correlation_id
 

@@ -63,6 +63,7 @@ dev = [
     "requests",
     "websockets",
     "pytest-celery",
+    "ruff>=0.15.15",
 ]
 
 [tool.uv]
@@ -75,15 +76,30 @@ module-root = ""
 requires = ["uv_build>=0.7.2,<0.8"]
 build-backend = "uv_build"
 
-[tool.black]
-quiet = true
+[tool.ruff]
 line-length = 120
-skip-string-normalization = true
-preview = true
 
-[tool.isort]
-profile = "black"
-line_length = 120
+[tool.ruff.lint]
+select = [
+    "F",     # pyflakes
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "I",     # isort
+    "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+    "T20",   # flake8-print
+    "SIM",   # flake8-simplify
+    "PT",    # flake8-pytest-style
+    "TC",    # flake8-type-checking
+    "UP",    # pyupgrade
+    "C90",   # mccabe complexity
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.format]
+quote-style = "single"
 
 [tool.coverage.run]
 omit = []

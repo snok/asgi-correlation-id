@@ -1,7 +1,7 @@
 import logging
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Optional
 from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from starlette.datastructures import MutableHeaders

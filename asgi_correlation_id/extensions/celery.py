@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Any, Dict
 from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from celery.signals import before_task_publish, task_postrun, task_prerun
@@ -9,7 +9,9 @@ from asgi_correlation_id.extensions.sentry import get_sentry_extension
 if TYPE_CHECKING:
     from celery import Task
 
-uuid_hex_generator: Callable[[], str] = lambda: uuid4().hex
+
+def uuid_hex_generator() -> str:
+    return uuid4().hex
 
 
 def load_correlation_ids(header_key: str = 'CORRELATION_ID', generator: Callable[[], str] = uuid_hex_generator) -> None:

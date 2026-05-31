@@ -1,5 +1,4 @@
 from contextvars import ContextVar
-from typing import Optional
 
 # Middleware
 correlation_id: ContextVar[str | None] = ContextVar('correlation_id', default=None)
