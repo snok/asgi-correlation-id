@@ -20,7 +20,6 @@ keywords = [
     "logging",
     "middleware",
     "sentry",
-    "celery",
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -44,7 +43,7 @@ classifiers = [
 dependencies = ["starlette>=0.18"]
 
 [project.optional-dependencies]
-celery = ["celery"]
+sentry = ["sentry-sdk>=2.12.0"]
 
 [project.urls]
 Homepage = "https://github.com/snok/asgi-correlation-id"
@@ -62,7 +61,6 @@ dev = [
     "coverage[toml]>=6",
     "requests",
     "websockets",
-    "pytest-celery",
     "ruff>=0.15.15",
 ]
 
