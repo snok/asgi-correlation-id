@@ -8,15 +8,19 @@ jobs:
   build-and-publish-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: snok/.github/workflows/publish@main
-        with:
-          overwrite-repository: true
-          repository-url: https://test.pypi.org/legacy/
-          token: ${{ secrets.TEST_PYPI_TOKEN }}
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build
+      - run: uv publish --publish-url https://test.pypi.org/legacy/
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
   build-and-publish:
     needs: build-and-publish-test
     runs-on: ubuntu-latest
     steps:
-      - uses: snok/.github/workflows/publish@main
-        with:
-          token: ${{ secrets.PYPI_TOKEN }}
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build
+      - run: uv publish
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
