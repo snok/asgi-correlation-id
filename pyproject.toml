@@ -106,6 +106,10 @@ max-complexity = 15
 [tool.ruff.format]
 quote-style = "single"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
 [tool.coverage.run]
 omit = []
 
