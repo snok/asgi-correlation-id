@@ -36,6 +36,9 @@ jobs:
           python-version: "${{ matrix.python-version }}"
           allow-prereleases: true
       - run: uv sync
+      - name: Type check
+        run: uvx ty check
+        if: matrix.python-version == '3.14'
       - name: Run tests
         run: |
           uv run coverage run -m pytest tests

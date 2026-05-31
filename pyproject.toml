@@ -76,6 +76,13 @@ module-root = ""
 requires = ["uv_build>=0.7.2,<0.8"]
 build-backend = "uv_build"
 
+[tool.ty.environment]
+python-version = "3.10"
+
+[[tool.ty.overrides]]
+include = ["tests/**"]
+rules = { unresolved-attribute = "ignore" }
+
 [tool.ruff]
 line-length = 120
 
