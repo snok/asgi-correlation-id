@@ -10,12 +10,12 @@ jobs:
   linting:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.14"
       - run: pip install pre-commit
-      - uses: actions/cache@v3
+      - uses: actions/cache@v5
         id: pre-commit-cache
         with:
           path: ~/.cache/pre-commit
@@ -29,36 +29,13 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "${{ matrix.python-version }}"
-      - uses: actions/cache@v3
-        id: poetry-cache
-        with:
-          path: ~/.local
-          key: ${{ matrix.python-version }}-1
-      - uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: false
-          version: latest
-      - uses: actions/cache@v3
-        id: cache-venv
-        with:
-          path: .venv
-          key: ${{ hashFiles('**/poetry.lock') }}-${{ matrix.python-version }}-1
-      - run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          pip install -U pip
-          poetry add fastapi==${{ matrix.fastapi-version }}
-          poetry install --no-interaction --no-root
-        if: steps.cache-venv.outputs.cache-hit != 'true'
-      - run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          pip install importlib-metadata==4.13.0
-        if: matrix.python-version == '3.7.14'
+          allow-prereleases: true
+      - run: uv sync
       - name: Run tests
         run: |
           uv run coverage run -m pytest tests
@@ -68,4 +45,4 @@ jobs:
         with:
           file: ./coverage.xml
           fail_ci_if_error: true
-        if: matrix.python-version == '3.10.6'
+        if: matrix.python-version == '3.14'
