@@ -174,9 +174,14 @@ async def test_custom_generator():
 
 
 def test_is_valid_uuid4():
+    # Standard UUIDv4 strings
     assert is_valid_uuid4('3758c31e-1177-4540-ba33-0109c405579a') is True
     assert is_valid_uuid4('9e6454c4-21d5-4e4a-a66a-b28f15576414') is True
     assert is_valid_uuid4('9e6454c421d54e4aa66ab28f15576414') is True
+    # Nginx-style 16 random bytes as hex (not strictly UUIDv4, but should be accepted)
+    assert is_valid_uuid4('c10f7ebebd95e5bb8749430d3485370c') is True
+    # All zeros (accepted by loose check)
+    assert is_valid_uuid4('00000000000000000000000000000000') is True
+    # Invalid strings
     assert is_valid_uuid4('foo') is False
     assert is_valid_uuid4('9e6454c4-21d5-4e4a-a66a-b28f15576414-1') is False
-    assert is_valid_uuid4('00000000000000000000000000000000') is False

@@ -183,11 +183,12 @@ Configurable middleware arguments include:
 **validator**
 
 - Type: `Callable[[str], bool]`
-- Default: `is_valid_uuid4` (
-  found [here](https://github.com/snok/asgi-correlation-id/blob/main/asgi_correlation_id/middleware.py#L17))
-- Description: The validator function is used when reading incoming HTTP header values. By default, we discard non-UUID
-  formatted header values, to enforce correlation ID uniqueness. If you prefer to allow any header value, you can set
-  this setting to `None`, or pass your own validator.
+- Default: `is_valid_uuid4`
+- Description: The validator function is used when reading incoming HTTP header values. By default, we accept any
+  32-character hex string that can be parsed as a UUID — this includes standard UUIDv4s, nginx-generated request IDs
+  (`$request_id`), and OpenTelemetry trace IDs. Non-hex or malformed values are rejected and a new ID is generated
+  instead. If you prefer to allow any header value, set this to `None`. For stricter UUIDv4 validation, pass your own
+  validator.
 
 **transformer**
 
