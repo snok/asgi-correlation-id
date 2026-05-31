@@ -45,6 +45,7 @@ dependencies = ["starlette>=0.18"]
 
 [project.optional-dependencies]
 celery = ["celery"]
+sentry = ["sentry-sdk>=2.12.0"]
 
 [project.urls]
 Homepage = "https://github.com/snok/asgi-correlation-id"
