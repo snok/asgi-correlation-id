@@ -5,7 +5,7 @@ from logging.config import dictConfig
 import pytest
 import pytest_asyncio
 from fastapi import FastAPI
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from starlette.middleware import Middleware
 
 from asgi_correlation_id.middleware import CorrelationIdMiddleware
@@ -66,5 +66,5 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope='module')
 async def client() -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(app=default_app, base_url='http://test') as client:
+    async with AsyncClient(transport=ASGITransport(app=default_app), base_url='http://test') as client:
         yield client
