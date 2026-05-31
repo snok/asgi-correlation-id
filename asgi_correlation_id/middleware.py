@@ -82,9 +82,9 @@ class CorrelationIdMiddleware:
         self.sentry_extension(id_value)
 
         async def handle_outgoing_request(message: 'Message') -> None:
-            if message['type'] == 'http.response.start' and correlation_id.get():
+            if message['type'] == 'http.response.start' and (cid := correlation_id.get()):
                 headers = MutableHeaders(scope=message)
-                headers.append(self.header_name, correlation_id.get())
+                headers.append(self.header_name, cid)
 
             await send(message)
 
