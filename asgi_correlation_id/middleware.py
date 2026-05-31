@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from starlette.datastructures import MutableHeaders
@@ -37,10 +38,10 @@ class CorrelationIdMiddleware:
     generator: Callable[[], str] = field(default=lambda: uuid4().hex)
 
     # ID validator
-    validator: Optional[Callable[[str], bool]] = field(default=is_valid_uuid4)
+    validator: Callable[[str], bool] | None = field(default=is_valid_uuid4)
 
     # ID transformer - can be used to clean/mutate IDs
-    transformer: Optional[Callable[[str], str]] = field(default=lambda a: a)
+    transformer: Callable[[str], str] | None = field(default=lambda a: a)
 
     async def __call__(self, scope: 'Scope', receive: 'Receive', send: 'Send') -> None:
         """
@@ -81,9 +82,9 @@ class CorrelationIdMiddleware:
         self.sentry_extension(id_value)
 
         async def handle_outgoing_request(message: 'Message') -> None:
-            if message['type'] == 'http.response.start' and correlation_id.get():
+            if message['type'] == 'http.response.start' and (cid := correlation_id.get()):
                 headers = MutableHeaders(scope=message)
-                headers.append(self.header_name, correlation_id.get())
+                headers.append(self.header_name, cid)
 
             await send(message)
 

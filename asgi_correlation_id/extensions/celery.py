@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Any, Callable, Dict
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from celery.signals import before_task_publish, task_postrun, task_prerun
@@ -8,7 +9,9 @@ from asgi_correlation_id.extensions.sentry import get_sentry_extension
 if TYPE_CHECKING:
     from celery import Task
 
-uuid_hex_generator: Callable[[], str] = lambda: uuid4().hex
+
+def uuid_hex_generator() -> str:
+    return uuid4().hex
 
 
 def load_correlation_ids(header_key: str = 'CORRELATION_ID', generator: Callable[[], str] = uuid_hex_generator) -> None:
@@ -23,7 +26,7 @@ def load_correlation_ids(header_key: str = 'CORRELATION_ID', generator: Callable
     sentry_extension = get_sentry_extension()
 
     @before_task_publish.connect(weak=False)
-    def transfer_correlation_id(headers: Dict[str, str], **kwargs: Any) -> None:
+    def transfer_correlation_id(headers: dict[str, str], **kwargs: Any) -> None:
         """
         Transfer correlation ID from request thread to Celery worker, by adding
         it as a header.
@@ -76,7 +79,7 @@ def load_celery_current_and_parent_ids(
     from asgi_correlation_id.context import celery_current_id, celery_parent_id
 
     @before_task_publish.connect(weak=False)
-    def publish_task_from_worker_or_request(headers: Dict[str, str], **kwargs: Any) -> None:
+    def publish_task_from_worker_or_request(headers: dict[str, str], **kwargs: Any) -> None:
         """
         Transfer the current ID to the next Celery worker, by adding
         it as a header.
