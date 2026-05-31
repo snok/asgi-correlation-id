@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi import Request, Response
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from starlette.testclient import TestClient
 
 from asgi_correlation_id.middleware import FAILED_VALIDATION_MESSAGE, is_valid_uuid4
@@ -38,7 +38,7 @@ async def test_returned_response_headers(app):
         logger.debug('Test view')
         return {'test': 'test'}
 
-    async with AsyncClient(app=app, base_url='http://test') as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url='http://test') as client:
         # Check we get the right headers back
         correlation_id = uuid4().hex
         response = await client.get('test', headers={'X-Request-ID': correlation_id})
@@ -66,7 +66,7 @@ async def test_update_request_header(app):
         logger.debug('Test view')
         return {'correlation_id': request.headers.get('X-Request-ID')}
 
-    async with AsyncClient(app=app, base_url='http://test') as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url='http://test') as client:
         # Check for newly generated request ID in the request header if none
         # was initially provided.
         response = await client.get('test')
@@ -104,7 +104,7 @@ async def test_non_uuid_header(caplog, value, app):
         logger.debug('Test view')
         return {'test': 'test'}
 
-    async with AsyncClient(app=app, base_url='http://test') as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url='http://test') as client:
         response = await client.get('test', headers={'X-Request-ID': value})
         new_value = response.headers['X-Request-ID']
         assert new_value != value
@@ -146,27 +146,29 @@ async def test_multiple_headers_same_name(caplog, app):
         response.set_cookie('refresh_token_cookie', 'test-refresh-token')
         return response
 
-    async with AsyncClient(app=app, base_url='http://test') as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url='http://test') as client:
         response = await client.get('multiple_headers_same_name')
         assert response.headers['set-cookie'].find('access_token_cookie') != -1
         assert response.headers['set-cookie'].find('refresh_token_cookie') != -1
 
 
 async def test_no_validator():
-    async with AsyncClient(app=no_validator_or_transformer_app, base_url='http://test') as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=no_validator_or_transformer_app), base_url='http://test'
+    ) as client:
         response = await client.get('test', headers={'X-Request-ID': 'bad-uuid'})
         assert response.headers['X-Request-ID'] == 'bad-uuid'
 
 
 async def test_custom_transformer():
     cid = uuid4().hex
-    async with AsyncClient(app=transformer_app, base_url='http://test') as client:
+    async with AsyncClient(transport=ASGITransport(app=transformer_app), base_url='http://test') as client:
         response = await client.get('test', headers={'X-Request-ID': cid})
         assert response.headers['X-Request-ID'] == cid * 2
 
 
 async def test_custom_generator():
-    async with AsyncClient(app=generator_app, base_url='http://test') as client:
+    async with AsyncClient(transport=ASGITransport(app=generator_app), base_url='http://test') as client:
         response = await client.get('test', headers={'X-Request-ID': 'bad-uuid'})
         assert response.headers['X-Request-ID'] == TRANSFORMER_VALUE
 

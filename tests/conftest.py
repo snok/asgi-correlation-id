@@ -1,10 +1,11 @@
 import asyncio
+from collections.abc import AsyncGenerator
 from logging.config import dictConfig
 
 import pytest
 import pytest_asyncio
 from fastapi import FastAPI
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from starlette.middleware import Middleware
 
 from asgi_correlation_id.middleware import CorrelationIdMiddleware
@@ -58,12 +59,12 @@ generator_app = FastAPI(middleware=[Middleware(CorrelationIdMiddleware, generato
 
 @pytest.fixture(scope='session', autouse=True)
 def event_loop():
-    loop = asyncio.get_event_loop_policy().new_event_loop()
+    loop = asyncio.new_event_loop()
     yield loop
     loop.close()
 
 
 @pytest_asyncio.fixture(scope='module')
-async def client() -> AsyncClient:
-    async with AsyncClient(app=default_app, base_url='http://test') as client:
+async def client() -> AsyncGenerator[AsyncClient, None]:
+    async with AsyncClient(transport=ASGITransport(app=default_app), base_url='http://test') as client:
         yield client
