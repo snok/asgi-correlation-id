@@ -1,5 +1,7 @@
 import contextvars
+import logging
 from logging import INFO, LogRecord
+from logging.config import dictConfig
 from uuid import uuid4
 
 import pytest
@@ -160,3 +162,54 @@ def test_celery_filter_maintains_current_behavior(cid: str, log_record: LogRecor
     original_filter_record_id = log_record.celery_current_id
 
     assert original_filter_record_id == new_filter_record_id
+
+
+def test_dictconfig_with_named_filter_works(cid: str):
+    """
+    The correct approach: define filters by name using the '()' factory
+    syntax, then reference them as strings in handler configs.
+
+    This is the pattern recommended in the README and works on all
+    Python versions.
+    """
+    config = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'filters': {
+            'correlation_id': {
+                '()': 'asgi_correlation_id.CorrelationIdFilter',
+                'uuid_length': 32,
+                'default_value': '-',
+            },
+        },
+        'handlers': {
+            'test_handler': {
+                'class': 'logging.StreamHandler',
+                'filters': ['correlation_id'],
+                'formatter': 'test_formatter',
+            },
+        },
+        'formatters': {
+            'test_formatter': {
+                'format': '[%(correlation_id)s] %(message)s',
+            },
+        },
+        'loggers': {
+            'test_dictconfig': {
+                'handlers': ['test_handler'],
+                'level': 'DEBUG',
+            },
+        },
+    }
+    dictConfig(config)
+
+    logger = logging.getLogger('test_dictconfig')
+    # Verify the filter is attached and functional
+    handler = logger.handlers[0]
+    assert any(isinstance(f, CorrelationIdFilter) for f in handler.filters)
+
+    # Verify it produces a log record with the correlation_id attribute
+    record = LogRecord(name='test', level=INFO, pathname='', lineno=0, msg='test', args=(), exc_info=None)
+    for f in handler.filters:
+        f.filter(record)
+    assert record.correlation_id == cid[:32]

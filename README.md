@@ -472,15 +472,14 @@ priority_settings = {
 To add a correlation ID to your [hypercorn](https://github.com/pgjones/hypercorn) logs, you'll need to add a log filter and change the log formatting. Here's an example of how to configure hypercorn, if you're running a [FastAPI](https://fastapi.tiangolo.com/deployment/manually/) app:
 
 ```python
+import asyncio
 import logging
 import os
 
-from fastapi import APIRouter, FastAPI
-from hypercorn.config import Config
-from hypercorn.asyncio import serve
 import asgi_correlation_id
-import asyncio
-import hypercorn
+from fastapi import APIRouter, FastAPI
+from hypercorn.asyncio import serve
+from hypercorn.config import Config
 
 
 def configure_logging():
@@ -489,57 +488,57 @@ def configure_logging():
     logging.basicConfig(
         handlers=[console_handler],
         level="INFO",
-	format="%(levelname)s log [%(correlation_id)s] %(name)s %(message)s")
+        format="%(levelname)s log [%(correlation_id)s] %(name)s %(message)s",
+    )
 
 
-app = FastAPI(on_startup=[configure_logging])
-app.add_middleware(asgi_correlation_id.CorrelationIdMiddleware)
+fastapi_app = FastAPI(on_startup=[configure_logging])
 router = APIRouter()
 
 
 @router.get("/test")
 async def test_get():
-    print("toto")
     logger = logging.getLogger()
     logger.info("test_get")
 
 
-app.include_router(router)
+fastapi_app.include_router(router)
+app = asgi_correlation_id.CorrelationIdMiddleware(fastapi_app)
 
 
 if __name__ == "__main__":
-    logConfig = {
+    log_config = {
+        "version": 1,
+        "filters": {
+            "correlation_id": {
+                "()": "asgi_correlation_id.CorrelationIdFilter",
+            },
+        },
         "handlers": {
             "hypercorn.access": {
                 "formatter": "hypercorn.access",
                 "level": "INFO",
                 "class": "logging.StreamHandler",
                 "stream": "ext://sys.stdout",
-                "filters": [
-                    asgi_correlation_id.CorrelationIdFilter()
-                ],
-        }},
+                "filters": ["correlation_id"],
+            },
+        },
         "formatters": {
             "hypercorn.access": {
                 "format": "%(message)s %(correlation_id)s",
-            }
+            },
         },
         "loggers": {
             "hypercorn.access": {
-                "handlers": [
-                    "hypercorn.access"
-                ],
+                "handlers": ["hypercorn.access"],
                 "level": "INFO",
             },
         },
-        "version": 1
     }
 
     config = Config()
-    # write access log to stdout
     config.accesslog = "-"
-
-    config.logconfig_dict = logConfig
+    config.logconfig_dict = log_config
     asyncio.run(serve(app, config))
 ```
 
@@ -574,11 +573,11 @@ def configure_logging():
     logging.basicConfig(
         handlers=[console_handler],
         level="INFO",
-        format="%(levelname)s log [%(correlation_id)s] %(name)s %(message)s")
+        format="%(levelname)s log [%(correlation_id)s] %(name)s %(message)s",
+    )
 
 
-app = FastAPI(on_startup=[configure_logging])
-app.add_middleware(asgi_correlation_id.CorrelationIdMiddleware)
+fastapi_app = FastAPI(on_startup=[configure_logging])
 router = APIRouter()
 
 
@@ -588,11 +587,17 @@ async def test_get():
     logger.info("test_get")
 
 
-app.include_router(router)
+fastapi_app.include_router(router)
+app = asgi_correlation_id.CorrelationIdMiddleware(fastapi_app)
 
 
 if __name__ == "__main__":
-    LOGGING_CONFIG["handlers"]["access"]["filters"] = [asgi_correlation_id.CorrelationIdFilter()]
+    LOGGING_CONFIG["filters"] = {
+        "correlation_id": {
+            "()": "asgi_correlation_id.CorrelationIdFilter",
+        },
+    }
+    LOGGING_CONFIG["handlers"]["access"]["filters"] = ["correlation_id"]
     LOGGING_CONFIG["formatters"]["access"]["fmt"] = "%(levelname)s access [%(correlation_id)s] %(name)s %(message)s"
     uvicorn.run("test:app", port=8080, log_level=os.environ.get("LOGLEVEL", "DEBUG").lower())
 ```
