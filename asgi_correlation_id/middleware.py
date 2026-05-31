@@ -49,6 +49,9 @@ class CorrelationIdMiddleware:
     # ID transformer - can be used to clean/mutate IDs
     transformer: Callable[[str], str] | None = field(default=lambda a: a)
 
+    # Sentry extension - set in __post_init__
+    sentry_extension: Callable[[str], None] = field(init=False, repr=False)
+
     async def __call__(self, scope: 'Scope', receive: 'Receive', send: 'Send') -> None:
         """
         Load request ID from headers if present. Generate one otherwise.
@@ -95,7 +98,6 @@ class CorrelationIdMiddleware:
             await send(message)
 
         await self.app(scope, receive, handle_outgoing_request)
-        return
 
     def __post_init__(self) -> None:
         """
