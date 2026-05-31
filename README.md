@@ -254,12 +254,38 @@ For more details on the topic, refer to the [CORS protocol](https://fetch.spec.w
 ## Exception handling
 
 By default, the `X-Request-ID` response header will be included in all responses from the server, *except* in the case
-of unhandled server errors. If you wish to include request IDs in the case of a `500` error you can add a custom
-exception handler.
+of unhandled server errors. This is a [known Starlette limitation](https://github.com/encode/starlette/issues/1175):
+when an unhandled exception occurs, Starlette's `ServerErrorMiddleware` (which always sits at the outermost layer)
+catches it and returns a plain error response, bypassing any middleware added via `add_middleware()`.
 
-Here are some simple examples to help you get started. See each framework's documentation for more info.
+There are two ways to handle this:
 
-### Starlette
+### Option 1: Wrap the application directly
+
+Instead of using `add_middleware()`, you can wrap the ASGI app directly so the middleware sits *outside*
+Starlette's error handling. This ensures the correlation ID header is included on all responses, including 500s:
+
+```python
+from fastapi import FastAPI
+
+from asgi_correlation_id import CorrelationIdMiddleware
+
+fastapi_app = FastAPI()
+app = CorrelationIdMiddleware(fastapi_app)
+
+# Pass `app` (not `fastapi_app`) to your ASGI server
+```
+
+> **Note:** With this approach, the `app` variable is a `CorrelationIdMiddleware` instance, not a `FastAPI` instance.
+> This can affect type checking and IDE tooling. If you need to reference the `FastAPI` app (e.g., to add routes),
+> use `fastapi_app`.
+
+### Option 2: Add a custom exception handler
+
+If you prefer to keep using `add_middleware()`, you can add a custom exception handler that includes the
+correlation ID header in error responses.
+
+#### Starlette
 
 Docs: https://www.starlette.io/exceptions/
 
@@ -285,7 +311,7 @@ app = Starlette(
 )
 ```
 
-### FastAPI
+#### FastAPI
 
 Docs: https://fastapi.tiangolo.com/tutorial/handling-errors/
 
@@ -645,7 +671,7 @@ def load_correlation_id(task) -> None:
     # This is called when the worker picks up the task
     # Here we're able to load the correlation ID from the headers
     id_value = task.request.get(header_key)
-    correlation_id.set(id_value)
+        correlation_id.set(id_value)
 ```
 
 To configure correlation ID transfer, simply import and run the setup function the package provides:
