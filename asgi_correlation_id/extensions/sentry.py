@@ -23,11 +23,6 @@ def set_transaction_id(correlation_id: str) -> None:
     which makes it easier to correlate logs to specific events.
     """
     import sentry_sdk
-    from packaging import version
 
-    if version.parse(sentry_sdk.VERSION) >= version.parse('2.12.0'):
-        scope = sentry_sdk.get_isolation_scope()
-        scope.set_tag('transaction_id', correlation_id)
-    else:
-        with sentry_sdk.configure_scope() as scope:
-            scope.set_tag('transaction_id', correlation_id)
+    scope = sentry_sdk.get_isolation_scope()
+    scope.set_tag('transaction_id', correlation_id)
