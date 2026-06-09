@@ -1,6 +1,6 @@
 [project]
 name = "asgi-correlation-id"
-version = "5.0.0"
+version = "5.0.1"
 description = "Middleware correlating project logs to individual requests"
 authors = [{ name = "Sondre Lillebø Gundersen", email = "sondrelg@live.no" }]
 requires-python = ">=3.10"
