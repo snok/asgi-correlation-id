@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 from uuid import UUID, uuid4
 
 from starlette.datastructures import MutableHeaders
@@ -35,7 +35,7 @@ FAILED_VALIDATION_MESSAGE = 'Generated new request ID (%s), since request header
 
 
 @dataclass
-class CorrelationIdMiddleware:
+class _CorrelationIdMiddleware:
     app: 'ASGIApp'
     header_name: str = 'X-Request-ID'
     update_request_header: bool = True
@@ -106,3 +106,32 @@ class CorrelationIdMiddleware:
         If Sentry is installed, propagate correlation IDs to Sentry events.
         """
         self.sentry_extension = get_sentry_extension()
+
+
+if TYPE_CHECKING:
+    # `_CorrelationIdMiddleware` is a plain ASGI app, so wrapping e.g. a `FastAPI`
+    # instance with it (`app = CorrelationIdMiddleware(app)`) would normally
+    # widen the type of `app` away from `FastAPI`, breaking route-decorator
+    # typing and other tooling that depends on it.
+    #
+    # To avoid that, we expose `CorrelationIdMiddleware` to type checkers as a
+    # class whose constructor (`__new__`) returns the *same* type it was given,
+    # instead of `Self`. This keeps `isinstance(...)` checks and variable
+    # annotations (`x: CorrelationIdMiddleware`) working. At runtime, this class
+    # is never used so behavior (including use with `app.add_middleware(...)`) is
+    # unchanged.
+    _AppType = TypeVar('_AppType', bound='ASGIApp')
+
+    class CorrelationIdMiddleware:
+        def __new__(
+            cls,
+            app: _AppType,
+            header_name: str = 'X-Request-ID',
+            update_request_header: bool = True,
+            generator: Callable[[], str] = lambda: uuid4().hex,
+            validator: Callable[[str], bool] | None = is_valid_uuid4,
+            transformer: Callable[[str], str] | None = lambda a: a,
+        ) -> _AppType: ...
+
+else:
+    CorrelationIdMiddleware = _CorrelationIdMiddleware

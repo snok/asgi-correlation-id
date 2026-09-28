@@ -51,7 +51,7 @@ To set up the package, you need to add the middleware and configure logging.
 
 ## Adding the middleware
 
-The middleware can be added like this:
+The recommended way to add the middleware is to wrap your app directly, rather than using `add_middleware`:
 
 ```python
 from fastapi import FastAPI
@@ -59,10 +59,16 @@ from fastapi import FastAPI
 from asgi_correlation_id import CorrelationIdMiddleware
 
 app = FastAPI()
-app.add_middleware(CorrelationIdMiddleware)
+
+# Add routes, exception handlers, etc. to `app` as usual.
+
+app = CorrelationIdMiddleware(app)
 ```
 
-or any other way your framework allows.
+Wrapping the app this way puts the middleware *outside* of Starlette's error handling, so the `X-Request-ID` header is included even on unhandled `500` responses without needing the custom exception handler described in
+[Exception handling](#exception-handling) below.
+
+You can still register the middleware with `app.add_middleware(CorrelationIdMiddleware)` instead if you prefer. Note that unhandled `500` responses won't include the header unless you also add a custom exception handler.
 
 For [Starlette](https://github.com/encode/starlette) apps, just substitute `FastAPI` with `Starlette` in all examples.
 
@@ -254,9 +260,9 @@ For more details on the topic, refer to the [CORS protocol](https://fetch.spec.w
 
 ## Exception handling
 
-By default, the `X-Request-ID` response header will be included in all responses from the server, *except* in the case
-of unhandled server errors. If you wish to include request IDs in the case of a `500` error you can add a custom
-exception handler.
+If the middleware is registered with `app.add_middleware(...)`, the correlation ID response header will be included in all responses from the server, *except* in the case of unhandled server errors. If you wish to include request IDs
+in the case of a `500` error, you can either wrap your app directly instead (see
+[Adding the middleware](#adding-the-middleware) above), or add a custom exception handler.
 
 Here are some simple examples to help you get started. See each framework's documentation for more info.
 

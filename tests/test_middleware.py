@@ -1,3 +1,6 @@
+import ast
+import dataclasses
+import inspect
 import logging
 from typing import TYPE_CHECKING
 from uuid import uuid4
@@ -7,7 +10,8 @@ from fastapi import Request, Response
 from httpx import ASGITransport, AsyncClient
 from starlette.testclient import TestClient
 
-from asgi_correlation_id.middleware import FAILED_VALIDATION_MESSAGE, is_valid_uuid4
+from asgi_correlation_id import middleware as middleware_module
+from asgi_correlation_id.middleware import FAILED_VALIDATION_MESSAGE, _CorrelationIdMiddleware, is_valid_uuid4
 from tests.conftest import (
     TRANSFORMER_VALUE,
     default_app,
@@ -185,3 +189,31 @@ def test_is_valid_uuid4():
     # Invalid strings
     assert is_valid_uuid4('foo') is False
     assert is_valid_uuid4('9e6454c4-21d5-4e4a-a66a-b28f15576414-1') is False
+
+
+def test_typing_stub_matches_dataclass_fields():
+    """Ensure that the `__new__` stub in `CorrelationIdMiddleware` matches the dataclass fields.
+
+    `CorrelationIdMiddleware`'s `TYPE_CHECKING`-only `__new__` stub exists so that static type
+    checkers see `app = CorrelationIdMiddleware(app)` as returning the same type it was given,
+    rather than widening it to the middleware's own type.
+
+    That stub's parameters are maintained by hand, separately from `_CorrelationIdMiddleware`'s
+    dataclass fields, so they could drift. This test flags any drift, so that the stub can be
+    updated to match the dataclass fields.
+    """
+    dataclass_params = [f.name for f in dataclasses.fields(_CorrelationIdMiddleware) if f.init]
+
+    source = inspect.getsource(middleware_module)
+    tree = ast.parse(source)
+
+    stub_class = next(
+        node for node in ast.walk(tree) if isinstance(node, ast.ClassDef) and node.name == 'CorrelationIdMiddleware'
+    )
+    new_method = next(
+        node for node in ast.walk(stub_class) if isinstance(node, ast.FunctionDef) and node.name == '__new__'
+    )
+    # Drop `cls`
+    stub_params = [arg.arg for arg in new_method.args.args[1:]]
+
+    assert stub_params == dataclass_params
