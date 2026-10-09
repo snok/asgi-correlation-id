@@ -25,5 +25,7 @@ class CorrelationIdFilter(Filter):
         metadata.
         """
         cid = correlation_id.get(self.default_value)
+        if cid is None:
+            cid = self.default_value
         record.correlation_id = _trim_string(cid, self.uuid_length)
         return True
