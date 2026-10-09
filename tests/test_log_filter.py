@@ -1,5 +1,5 @@
 import contextvars
-from logging import INFO, LogRecord
+from logging import INFO, Formatter, LogRecord
 from uuid import uuid4
 
 import pytest
@@ -64,3 +64,37 @@ def test_filter_uses_default_value(cid: str, log_record: LogRecord):
     assert not hasattr(log_record, 'correlation_id')
     filter_.filter(log_record)
     assert log_record.correlation_id == '-'
+
+
+@pytest.mark.parametrize(
+    ('default_value', 'uuid_length', 'expected'), [('-', None, '-'), (None, None, None), ('missing', 4, 'miss')]
+)
+def test_filter_uses_default_after_correlation_id_is_cleared(log_record, default_value, uuid_length, expected):
+    token = correlation_id.set(None)
+    try:
+        filter_ = CorrelationIdFilter(default_value=default_value, uuid_length=uuid_length)
+        assert filter_.filter(log_record) is True
+        assert log_record.correlation_id == expected
+        assert correlation_id.get() is None
+    finally:
+        correlation_id.reset(token)
+
+
+def test_filter_preserves_empty_correlation_id(log_record):
+    token = correlation_id.set('')
+    try:
+        filter_ = CorrelationIdFilter(default_value='-')
+        assert filter_.filter(log_record) is True
+        assert log_record.correlation_id == ''
+    finally:
+        correlation_id.reset(token)
+
+
+def test_filter_formats_cleared_correlation_id_as_string(log_record):
+    token = correlation_id.set(None)
+    try:
+        CorrelationIdFilter(default_value='-').filter(log_record)
+        formatter = Formatter('{correlation_id:s} {message}', style='{')
+        assert formatter.format(log_record) == '- Hello, world!'
+    finally:
+        correlation_id.reset(token)
